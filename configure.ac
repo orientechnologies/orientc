@@ -13,7 +13,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
+PKG_CHECK_MODULES([CHECK],[check >= 0.9.4])
 # Checks for libraries.
 
 # Checks for header files.

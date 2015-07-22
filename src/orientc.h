@@ -2,31 +2,31 @@
 
 namespace Orient {
 
-enum OType{
-BOOLEAN =0,
-INTEGER =1,
-SHORT =2,
-LONG =3,
-FLOAT =4,
-DOUBLE =5,
-DATETIME=6,
-STRING=7,
-BINARY=8,
-EMBEDDED=9,
-EMBEDDEDLIST=10,
-EMBEDDEDSET=11,
-EMBEDDEDMAP=12,
-LINK =13,
-LINKLIST=14,
-LINKSET =15,
-LINKMAP =16,
-BYTE = 17,
-TRANSIENT = 18,
-DATE =19,
-CUSTOM = 20,
-DECIMAL = 21,
-RIDBAG = 22,
-ANY = 23
+enum OType {
+	BOOLEAN =0,
+	INTEGER =1,
+	SHORT =2,
+	LONG =3,
+	FLOAT =4,
+	DOUBLE =5,
+	DATETIME=6,
+	STRING=7,
+	BINARY=8,
+	EMBEDDED=9,
+	EMBEDDEDLIST=10,
+	EMBEDDEDSET=11,
+	EMBEDDEDMAP=12,
+	LINK =13,
+	LINKLIST=14,
+	LINKSET =15,
+	LINKMAP =16,
+	BYTE = 17,
+	TRANSIENT = 18,
+	DATE =19,
+	CUSTOM = 20,
+	DECIMAL = 21,
+	RIDBAG = 22,
+	ANY = 23
 };
 struct Link {
 	long cluster;
@@ -34,7 +34,7 @@ struct Link {
 };
 
 class RecordParseListener {
-	public:
+public:
 	virtual void className(char * name)=0;
 	virtual void startField(char * name,OType type)=0;
 	virtual void endField(char * name)=0;
@@ -50,10 +50,11 @@ class RecordParseListener {
 	virtual void dateValue(long long value)=0;
 	virtual void dateTimeValue(long long value)=0;
 	virtual void linkValue(struct Link value)=0;
+	virtual ~RecordParseListener() {}
 };
 
 class RecordParser {
-	public:
+public:
 	RecordParser(std::string format);
 	void parse(char * content,int content_size, RecordParseListener & listener);
 
@@ -61,8 +62,8 @@ class RecordParser {
 
 class RecordWriter {
 
-	public:
-  	void className(char * name);
+public:
+	void className(char * name);
 	void startField(char * name,OType type);
 	void endField(char * name);
 	void stringValue(char * value);
@@ -79,7 +80,5 @@ class RecordWriter {
 	void linkValue(struct Link value);
 };
 
-
 }
-
 

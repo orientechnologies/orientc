@@ -3,12 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <climits>
+#include <iostream>
 
 using namespace Orient;
 
 long long ser_deser_varint(long long number) {
 	char content[1024];
-	ContentReader reader(content, 1024);
+	ContentBuffer reader(content, 1024);
 	writeVarint(reader, number);
 	reader.prepared = 0;
 	reader.cursor = 0;

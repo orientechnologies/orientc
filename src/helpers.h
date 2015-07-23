@@ -2,19 +2,21 @@
 
 namespace Orient {
 
-class ContentReader {
+class ContentBuffer {
 public:
-	ContentReader(char * content, const int content_size);
-	void prepare_read(int next);
+	ContentBuffer();
+	ContentBuffer(char * content, const int content_size);
+	void prepare(int next);
+	void force_cursor(int position);
 	char *content;
 	const int size;
 	int cursor;
 	int prepared;
 };
 
-long long readVarint(ContentReader &reader);
+long long readVarint(ContentBuffer &reader);
 
-void writeVarint(ContentReader &reader,long long value);
+void writeVarint(ContentBuffer &reader,long long value);
 
 
 }  // namespace Orient

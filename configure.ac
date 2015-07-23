@@ -3,10 +3,10 @@
 
 AC_PREREQ([2.69])
 AC_INIT([orientc], [0.9], [https://github.com/orientechnologies/orientc/issues])
-AC_CONFIG_SRCDIR([src/orientc.cpp])
+AC_CONFIG_SRCDIR([src/orientc_reader.cpp])
 AC_CONFIG_HEADERS([config.h])
 LT_INIT([shared])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC

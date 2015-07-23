@@ -10,7 +10,7 @@ autoreconf -i
 ./configure
 ```
 
-comile
+compile
 ```
 make
 ```

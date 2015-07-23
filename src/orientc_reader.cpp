@@ -29,14 +29,14 @@ void RecordParser::parse(char * content, int content_size, RecordParseListener &
 
 void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	long long class_size = readVarint(reader);
-	char * class_name = reinterpret_cast<char *>(malloc(class_size));
+	char * class_name = reinterpret_cast<char *>(malloc(class_size+1));
 	readString(reader, class_name, class_size);
 	listener.className(class_name);
 	free(class_name);
 	long long size = 0;
 	while ((size = readVarint(reader)) != 0) {
 		if (size > 0) {
-			char * field_name = reinterpret_cast<char *>(malloc(size));
+			char * field_name = reinterpret_cast<char *>(malloc(size+1));
 			readString(reader, field_name, size);
 			long position = readFlat32Integer(reader);
 			reader.prepare(1);
@@ -123,7 +123,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 
 void readValueString(ContentBuffer & reader, RecordParseListener & listener) {
 	long long value_size = readVarint(reader);
-	char * value = reinterpret_cast<char *>(malloc(value_size));
+	char * value = reinterpret_cast<char *>(malloc(value_size+1));
 	readString(reader, value, value_size);
 	listener.stringValue(value);
 	free(value);

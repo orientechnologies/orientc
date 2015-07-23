@@ -9,9 +9,12 @@ public:
 	void prepare(int next);
 	void force_cursor(int position);
 	char *content;
-	const int size;
 	int cursor;
 	int prepared;
+	~ContentBuffer();
+private:
+	int size;
+	bool writing;
 };
 
 long long readVarint(ContentBuffer &reader);

@@ -11,7 +11,7 @@
 #include "orientc_reader.h"
 namespace Orient{
 
-class ContentBuffer;
+class InternalWriter;
 
 class RecordWriter {
 
@@ -19,7 +19,7 @@ public:
 	RecordWriter(std::string format);
 	void className(char * name);
 	void startField(char * name,OType type);
-	void endField(char * name);
+	void endField(char * name,OType type);
 	void stringValue(char * value);
 	void intValue(long value);
 	void longValue(long long value);
@@ -32,9 +32,9 @@ public:
 	void dateValue(long long value);
 	void dateTimeValue(long long value);
 	void linkValue(struct Link & value);
-	const char * writtenContent();
+	const char * writtenContent(int *size);
 private:
-	ContentBuffer *reader;
+	InternalWriter *writer;
 };
 
 }

@@ -1,23 +1,37 @@
 #include "helpers.h"
 #include <iostream>
-
+#include <stdlib.h>
 namespace Orient {
 
 ContentBuffer::ContentBuffer() :
-		content(0), size(0), cursor(0), prepared(0) {
-
+		content(0), cursor(0), prepared(0), size(0), writing(true) {
+	content = (char *) malloc(2048);
+	size = 2048;
 }
 
 ContentBuffer::ContentBuffer(char * content, const int content_size) :
-		content(content), size(content_size), cursor(0), prepared(0) {
+		content(content), cursor(0), prepared(0), size(content_size), writing(false) {
 }
 
 void ContentBuffer::prepare(int next) {
-	if (next > this->size)
-		throw " out of content size";
+	if (next > this->size) {
+		if (writing) {
+			char * new_content = (char *) realloc(content, size * 2);
+			if (new_content == 0)
+				throw "out of memory";
+			content = new_content;
+			size *= 2;
+		} else
+			throw " out of content size";
+	}
 	cursor = prepared;
 	prepared += next;
-	//std::cout << "cursor:" << cursor << " prepared:" << prepared << " char:" << std::hex << (int) content[cursor] << std::dec << "\n";
+	//std::cout << "cursor:" << cursor << " prepared:" << prepared << " char:" << std::hex << (int) content[cursor] << std::dec <<" inwrite:"<<writing<< "\n";
+}
+
+ContentBuffer::~ContentBuffer() {
+	if (writing)
+		free(content);
 }
 
 void ContentBuffer::force_cursor(int position) {

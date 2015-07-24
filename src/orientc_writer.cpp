@@ -1,12 +1,25 @@
 #include "orientc_writer.h"
-#include "helpers.h"
-#include <list>
+
 #include <stdlib.h>
 #include <string.h>
-namespace Orient {
+#include <list>
+#include <utility>
 
-void writeString(ContentBuffer & buffer, char *string);
-void writeFlatInteger(ContentBuffer & buffer, long string);
+#include "helpers.h"
+
+namespace Orient {
+union ftl {
+	float fl;
+	char bytes[4];
+};
+
+union dtll {
+	double db;
+	char bytes[8];
+};
+
+void writeString(ContentBuffer & buffer, const char *string);
+void writeFlat32Integer(ContentBuffer & buffer, long value);
 
 class DocumentWriter {
 public:
@@ -14,9 +27,9 @@ public:
 	ContentBuffer data;
 	std::list<std::pair<int, int> > pointers;
 	void writeRecordVersion();
-	void writeClass(char * name);
-	void startField(char *name, OType type);
-	void endField(char *name, OType type);
+	void writeClass(const char * name);
+	void startField(const char *name, OType type);
+	void endField(const char *name, OType type);
 	char * writtenContent(int *size);
 };
 
@@ -30,11 +43,11 @@ void DocumentWriter::writeRecordVersion() {
 	header.content[header.cursor] = 0;
 }
 
-void DocumentWriter::writeClass(char * name) {
+void DocumentWriter::writeClass(const char * name) {
 	writeString(header, name);
 }
 
-void DocumentWriter::startField(char *name, OType type) {
+void DocumentWriter::startField(const char *name, OType type) {
 	writeString(header, name);
 	header.prepare(4);
 	std::pair<int, int> toAdd(header.cursor, data.prepared);
@@ -43,7 +56,7 @@ void DocumentWriter::startField(char *name, OType type) {
 	header.content[header.cursor] = type;
 }
 
-void DocumentWriter::endField(char *name, OType type) {
+void DocumentWriter::endField(const char *name, OType type) {
 }
 
 char * DocumentWriter::writtenContent(int * size) {
@@ -55,9 +68,9 @@ char * DocumentWriter::writtenContent(int * size) {
 	for (i = pointers.begin(); i != pointers.end(); ++i) {
 		std::pair<int, int> & pair = *i;
 		header.force_cursor(pair.first);
-		writeFlatInteger(header, pair.second + headerSize);
+		writeFlat32Integer(header, pair.second + headerSize);
 	}
-	char * all = (char *) malloc(wholeSize);
+	char * all = reinterpret_cast<char *>(malloc(wholeSize));
 	memcpy(all, header.content, headerSize);
 	memcpy(all + headerSize, data.content, dataSize);
 	*size = wholeSize;
@@ -73,14 +86,18 @@ RecordWriter::RecordWriter(std::string formatter) :
 	doc->writeRecordVersion();
 
 }
+RecordWriter::~RecordWriter() {
+	delete writer->nested.front();
+	delete writer;
+}
 
-void RecordWriter::className(char * name) {
+void RecordWriter::className(const char * name) {
 	DocumentWriter * doc = writer->nested.front();
 	doc->writeClass(name);
 
 }
 
-void RecordWriter::startField(char *name, OType type) {
+void RecordWriter::startField(const char *name, OType type) {
 	DocumentWriter *front = writer->nested.front();
 	front->startField(name, type);
 	if (type == EMBEDDED) {
@@ -89,7 +106,7 @@ void RecordWriter::startField(char *name, OType type) {
 
 }
 
-void RecordWriter::stringValue(char * value) {
+void RecordWriter::stringValue(const char * value) {
 	DocumentWriter *front = writer->nested.front();
 	writeString(front->data, value);
 }
@@ -111,7 +128,7 @@ void RecordWriter::longValue(long long value) {
 
 void RecordWriter::dateValue(long long value) {
 	DocumentWriter *front = writer->nested.front();
-	//TODO:Reduce the size
+	value /= 86400000;
 	writeVarint(front->data, value);
 }
 
@@ -132,7 +149,36 @@ void RecordWriter::booleanValue(bool value) {
 	front->data.content[front->data.cursor] = value ? 1 : 0;
 }
 
-void RecordWriter::endField(char *name, OType type) {
+void RecordWriter::floatValue(float value) {
+	DocumentWriter *front = writer->nested.front();
+	union ftl tran;
+	tran.fl = value;
+	front->data.prepare(4);
+	memcpy(front->data.content + front->data.cursor, tran.bytes, 4);
+}
+
+void RecordWriter::doubleValue(double value) {
+	DocumentWriter *front = writer->nested.front();
+	union dtll tran2;
+	tran2.db = value;
+	front->data.prepare(8);
+	memcpy(front->data.content + front->data.cursor, tran2.bytes, 8);
+}
+
+void RecordWriter::binaryValue(const char * value, int size) {
+	DocumentWriter *front = writer->nested.front();
+	writeVarint(front->data, size);
+	front->data.prepare(size);
+	memcpy(front->data.content + front->data.cursor, value, size);
+}
+
+void RecordWriter::linkValue(struct Link &link) {
+	DocumentWriter *front = writer->nested.front();
+	writeVarint(front->data, link.cluster);
+	writeVarint(front->data, link.position);
+}
+
+void RecordWriter::endField(const char *name, OType type) {
 	DocumentWriter *front = writer->nested.front();
 	front->endField(name, type);
 	if (type == EMBEDDED) {
@@ -150,14 +196,14 @@ const char * RecordWriter::writtenContent(int * size) {
 	return writer->nested.front()->writtenContent(size);
 }
 
-void writeString(ContentBuffer & buffer, char *string) {
+void writeString(ContentBuffer & buffer, const char *string) {
 	int size = strlen(string);
 	writeVarint(buffer, size);
 	buffer.prepare(size);
 	memcpy(buffer.content + buffer.cursor, string, size);
 }
 
-void writeFlatInteger(ContentBuffer & buffer, long value) {
+void writeFlat32Integer(ContentBuffer & buffer, long value) {
 	buffer.prepare(4);
 	buffer.content[buffer.cursor] = (char) ((value >> 24) & 0xFF);
 	buffer.content[buffer.cursor + 1] = (char) ((value >> 16) & 0xFF);

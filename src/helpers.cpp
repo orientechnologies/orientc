@@ -5,7 +5,7 @@ namespace Orient {
 
 ContentBuffer::ContentBuffer() :
 		content(0), cursor(0), prepared(0), size(0), writing(true) {
-	content = (char *) malloc(2048);
+	content = reinterpret_cast<char *>(malloc(2048));
 	size = 2048;
 }
 
@@ -14,19 +14,20 @@ ContentBuffer::ContentBuffer(char * content, const int content_size) :
 }
 
 void ContentBuffer::prepare(int next) {
-	if (next > this->size) {
+	if (prepared + next > this->size) {
 		if (writing) {
-			char * new_content = (char *) realloc(content, size * 2);
+			char * new_content = reinterpret_cast<char *>(realloc(content, size * 2));
 			if (new_content == 0)
 				throw "out of memory";
 			content = new_content;
 			size *= 2;
+			std::cout << "reallocated" << std::endl;
 		} else
 			throw " out of content size";
 	}
 	cursor = prepared;
 	prepared += next;
-	//std::cout << "cursor:" << cursor << " prepared:" << prepared << " char:" << std::hex << (int) content[cursor] << std::dec <<" inwrite:"<<writing<< "\n";
+	//std::cout << "cursor:" << cursor << " prepared:" << prepared << " size:" << size << " inwrite:" << writing << "\n";
 }
 
 ContentBuffer::~ContentBuffer() {

@@ -17,22 +17,23 @@ class RecordWriter {
 
 public:
 	RecordWriter(std::string format);
-	void className(char * name);
-	void startField(char * name,OType type);
-	void endField(char * name,OType type);
-	void stringValue(char * value);
+	void className(const char * name);
+	void startField(const char * name,OType type);
+	void endField(const char * name,OType type);
+	void stringValue(const char * value);
 	void intValue(long value);
 	void longValue(long long value);
 	void shortValue(short value);
 	void byteValue(char value);
 	void booleanValue(bool value);
 	void floatValue(float value);
-	void doubleValue(long double value);
-	void binaryValue(char * value, int length);
+	void doubleValue(double value);
+	void binaryValue(const char * value, int length);
 	void dateValue(long long value);
 	void dateTimeValue(long long value);
 	void linkValue(struct Link & value);
 	const char * writtenContent(int *size);
+	~RecordWriter();
 private:
 	InternalWriter *writer;
 };

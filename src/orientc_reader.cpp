@@ -1,9 +1,21 @@
 #include "orientc_reader.h"
-#include "helpers.h"
-#include <iostream>
+
 #include <malloc.h>
-#include <memory.h>
+#include <cstring>
+
+#include "helpers.h"
+
 namespace Orient {
+
+union ftl {
+	float fl;
+	char bytes[4];
+};
+
+union dtll {
+	double db;
+	char bytes[8];
+};
 
 void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & listener);
 void readString(ContentBuffer & reader, char * str, int size);
@@ -29,14 +41,14 @@ void RecordParser::parse(char * content, int content_size, RecordParseListener &
 
 void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	long long class_size = readVarint(reader);
-	char * class_name = reinterpret_cast<char *>(malloc(class_size+1));
+	char * class_name = reinterpret_cast<char *>(malloc(class_size + 1));
 	readString(reader, class_name, class_size);
 	listener.className(class_name);
 	free(class_name);
 	long long size = 0;
 	while ((size = readVarint(reader)) != 0) {
 		if (size > 0) {
-			char * field_name = reinterpret_cast<char *>(malloc(size+1));
+			char * field_name = reinterpret_cast<char *>(malloc(size + 1));
 			readString(reader, field_name, size);
 			long position = readFlat32Integer(reader);
 			reader.prepare(1);
@@ -47,6 +59,7 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 			readSimpleValue(reader, type, listener);
 			reader.force_cursor(temp);
 			listener.endField(field_name);
+			//std::cout << "read field:" << field_name << "position" << position << std::endl;
 			free(field_name);
 		} else {
 			// god sake
@@ -87,14 +100,28 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	}
 		break;
 	case DATE: {
-		int read = readVarint(reader);
-		//TODO check
-		//listener.dateValue(read);
+		long long read = readVarint(reader);
+		read *= 86400000;
+		listener.dateValue(read);
+	}
+		break;
+	case FLOAT: {
+		union ftl tran;
+		reader.prepare(4);
+		memcpy(tran.bytes, reader.content + reader.cursor, 4);
+		listener.floatValue(tran.fl);
+	}
+		break;
+	case DOUBLE: {
+		union dtll tran2;
+		reader.prepare(8);
+		memcpy(tran2.bytes, reader.content + reader.cursor, 8);
+		listener.doubleValue(tran2.db);
 	}
 		break;
 	case DATETIME: {
-		int value = readVarint(reader);
-		listener.dateValue(value);
+		long long value = readVarint(reader);
+		listener.dateTimeValue(value);
 	}
 		break;
 	case LINK: {
@@ -104,6 +131,15 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	case LINKSET:
 	case LINKLIST: {
 		readValueLinkCollection(reader, listener);
+	}
+		break;
+	case BINARY: {
+		long long value_size = readVarint(reader);
+		char * value = reinterpret_cast<char *>(malloc(value_size + 1));
+		reader.prepare(value_size);
+		memcpy(value, reader.content + reader.cursor, value_size);
+		listener.binaryValue(value, value_size);
+		free(value);
 	}
 		break;
 	case EMBEDDEDLIST:
@@ -123,7 +159,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 
 void readValueString(ContentBuffer & reader, RecordParseListener & listener) {
 	long long value_size = readVarint(reader);
-	char * value = reinterpret_cast<char *>(malloc(value_size+1));
+	char * value = reinterpret_cast<char *>(malloc(value_size + 1));
 	readString(reader, value, value_size);
 	listener.stringValue(value);
 	free(value);
@@ -170,10 +206,10 @@ void readString(ContentBuffer & reader, char * str, int size) {
 long readFlat32Integer(ContentBuffer & reader) {
 	long value = 0;
 	reader.prepare(4);
-	value |= ((long) reader.content[reader.cursor]) << 24;
-	value |= ((long) reader.content[reader.cursor + 1]) << 15;
-	value |= ((long) reader.content[reader.cursor + 2]) << 8;
-	value |= ((long) reader.content[reader.cursor + 3]);
+	value |= ((long) 0xff & reader.content[reader.cursor]) << 24;
+	value |= ((long) 0xff & reader.content[reader.cursor + 1]) << 15;
+	value |= ((long) 0xff & reader.content[reader.cursor + 2]) << 8;
+	value |= ((long) 0xff & reader.content[reader.cursor + 3]);
 	return value;
 
 }

@@ -43,7 +43,10 @@ struct Link {
 
 class RecordParseListener {
 public:
-	virtual void className(char * name)=0;
+	virtual void startDocument(char * className)=0;
+	virtual void startCollection(int size)=0;
+	virtual void startMap(int size)=0;
+	virtual void mapKey(char * key)=0;
 	virtual void startField(const char * name,OType type)=0;
 	virtual void endField(const char * name)=0;
 	virtual void stringValue(char * value)=0;
@@ -58,6 +61,9 @@ public:
 	virtual void dateValue(long long value)=0;
 	virtual void dateTimeValue(long long value)=0;
 	virtual void linkValue(struct Link & value)=0;
+	virtual void endMap()=0;
+	virtual void endCollection()=0;
+	virtual void endDocument()=0;
 	virtual ~RecordParseListener() {}
 };
 

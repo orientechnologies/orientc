@@ -43,7 +43,7 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	long long class_size = readVarint(reader);
 	char * class_name = reinterpret_cast<char *>(malloc(class_size + 1));
 	readString(reader, class_name, class_size);
-	listener.className(class_name);
+	listener.startDocument(class_name);
 	free(class_name);
 	long long size = 0;
 	while ((size = readVarint(reader)) != 0) {
@@ -174,14 +174,17 @@ void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
 
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener) {
 	int size = readVarint(reader);
+	listener.startCollection(size);
 	while (size-- > 0) {
 		//TODO: handle null
 		readValueLink(reader, listener);
 	}
+	listener.endCollection();
 
 }
 void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener) {
 	int size = readVarint(reader);
+	listener.startCollection(size);
 	reader.prepare(1);
 	OType type = (OType) reader.content[reader.cursor];
 	if (ANY == type) {
@@ -194,6 +197,7 @@ void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & l
 				readSimpleValue(reader, entryType, listener);
 		}
 	}
+	listener.endCollection();
 	//For now else is impossible
 }
 

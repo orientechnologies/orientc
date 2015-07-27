@@ -7,13 +7,17 @@
 
 #ifndef TEST_TEST_READER_LISTENER_H_
 #define TEST_TEST_READER_LISTENER_H_
+#include "../src/orientc_reader.h"
 
 using namespace Orient;
 
 class TrackerListener: public RecordParseListener {
 public:
-	virtual void className(char * name) {
+	virtual void startDocument(char * name) {
 		this->class_name = strdup(name);
+	}
+	virtual void endDocument() {
+
 	}
 	virtual void startField(const char * name, OType type) {
 		this->field_count++;
@@ -62,6 +66,14 @@ public:
 		link_value.position=value.position;
 	}
 
+	virtual void startCollection(int size) {
+		collectionSize = size;
+	}
+	virtual void startMap(int size) {}
+	virtual void mapKey(char *size) {}
+	virtual void endMap() {}
+	virtual void endCollection() {}
+
 	int field_count;
 	int balanced_count;
 	char * class_name;
@@ -78,8 +90,9 @@ public:
 	long long date_value;
 	long long date_time_value;
 	struct Link link_value;
+	int collectionSize;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);

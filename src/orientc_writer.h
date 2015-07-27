@@ -17,7 +17,9 @@ class RecordWriter {
 
 public:
 	RecordWriter(std::string format);
-	void className(const char * name);
+	void startDocument(const char * className);
+	void startCollection(int size);
+	void startMap(int size);
 	void startField(const char * name,OType type);
 	void endField(const char * name,OType type);
 	void stringValue(const char * value);
@@ -32,6 +34,9 @@ public:
 	void dateValue(long long value);
 	void dateTimeValue(long long value);
 	void linkValue(struct Link & value);
+	void endMap();
+	void endCollection();
+	void endDocument();
 	const char * writtenContent(int *size);
 	~RecordWriter();
 private:

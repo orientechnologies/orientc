@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "test_reader_listener.h"
+#include "test_reader_listener_link_list.h"
 using namespace Orient;
 
 START_TEST(test_simple_write_read)
@@ -25,7 +26,6 @@ START_TEST(test_simple_write_read)
 		const char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
-		std::cout.flush();
 		TrackerListener listener;
 		reader.parse((char *) content, size, listener);
 		free((void *) content);
@@ -42,9 +42,6 @@ START_TEST(test_simple_write_read)
 	}
 
 END_TEST
-
-
-
 
 START_TEST(test_all_simple_write_read)
 	try {
@@ -106,7 +103,6 @@ START_TEST(test_all_simple_write_read)
 		const char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
-		std::cout.flush();
 		TrackerListener listener;
 		reader.parse((char *) content, size, listener);
 		free((void *) content);
@@ -166,7 +162,6 @@ START_TEST(test_embedded_collection_read_write)
 		const char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
-		std::cout.flush();
 		TrackerListener listener;
 		reader.parse((char *) content, size, listener);
 		free((void *) content);
@@ -198,12 +193,107 @@ START_TEST(test_embedded_collection_read_write)
 
 END_TEST
 
+START_TEST(test_link_collection_read_write)
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("testCollection", LINKLIST);
+		writer.startCollection(10);
+		struct Link lnk;
+		lnk.cluster = 0;
+		lnk.position = 1;
+		for (; lnk.position < 10; lnk.position++) {
+			writer.linkValue(lnk);
+			lnk.cluster = lnk.position;
+		}
+		writer.endCollection();
+		writer.endField("testCollection", LINKLIST);
+		writer.endDocument();
+		int size;
+
+		const char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		LinkListListener listener;
+		reader.parse((char *) content, size, listener);
+		free((void *) content);
+
+		assert(listener.collectionSize == 10);
+		assert(listener.count == 10);
+
+	} catch (const char * oh) {
+		std::cout << "oh" << oh;
+		std::cout.flush();
+
+	}
+
+END_TEST
+
+START_TEST(test_embedded_map_read_write)
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("testCollection", EMBEDDEDMAP);
+		writer.startMap(12);
+		writer.mapKey("key0");
+		writer.stringValue("test");
+		writer.mapKey("key1");
+		writer.intValue(10);
+		writer.mapKey("key2");
+		writer.longValue(30);
+		writer.mapKey("key3");
+		writer.booleanValue(true);
+		writer.mapKey("key4");
+		writer.shortValue(20);
+		writer.mapKey("key5");
+		writer.byteValue(40);
+		writer.mapKey("key6");
+		writer.floatValue(50.04f);
+		writer.mapKey("key7");
+		writer.doubleValue(60.043);
+		writer.mapKey("key8");
+		writer.binaryValue("bla", 3);
+		writer.mapKey("key9");
+		writer.dateValue(2073600000);
+		writer.mapKey("key10");
+		writer.dateTimeValue(2073600100);
+		writer.mapKey("key11");
+		struct Link l;
+		l.cluster = 10;
+		l.position = 20;
+		writer.linkValue(l);
+
+		writer.endMap();
+		writer.endField("testCollection", EMBEDDEDMAP);
+		writer.endDocument();
+		int size;
+
+		const char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		TrackerListener listener;
+		reader.parse((char *) content, size, listener);
+		free((void *) content);
+
+		assert(listener.mapSize == 12);
+		assert(listener.mapCount == 12);
+
+	} catch (const char * oh) {
+		std::cout << "oh" << oh;
+		std::cout.flush();
+
+	}
+
+END_TEST
+
 Suite * file_suite(void) {
 	Suite *s = suite_create("file");
 	TCase *tc_core = tcase_create("simmetric_writer_reader");
 	tcase_add_test(tc_core, test_simple_write_read);
 	tcase_add_test(tc_core, test_all_simple_write_read);
 	tcase_add_test(tc_core, test_embedded_collection_read_write);
+	tcase_add_test(tc_core, test_link_collection_read_write);
+	tcase_add_test(tc_core, test_embedded_map_read_write);
 	suite_add_tcase(s, tc_core);
 	return s;
 }

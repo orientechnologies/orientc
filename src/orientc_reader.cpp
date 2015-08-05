@@ -22,6 +22,7 @@ void readString(ContentBuffer & reader, char * str, int size);
 void readValueString(ContentBuffer & reader, RecordParseListener & listener);
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener);
 void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener);
+void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener);
 void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
 void readDocument(ContentBuffer &reader, RecordParseListener & listener);
 long readFlat32Integer(ContentBuffer & reader);
@@ -143,8 +144,12 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	}
 		break;
 	case EMBEDDEDLIST:
-	case EMBEDDEDMAP: {
+	case EMBEDDEDSET: {
 		readValueEmbeddedCollection(reader, listener);
+	}
+		break;
+	case EMBEDDEDMAP: {
+		readValueEmbeddedMap(reader, listener);
 	}
 		break;
 	case EMBEDDED: {
@@ -200,6 +205,30 @@ void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & l
 	listener.endCollection();
 	//For now else is impossible
 }
+
+void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener){
+	long long size = 0;
+	while ((size = readVarint(reader)) != 0) {
+		if (size > 0) {
+			char * field_name = reinterpret_cast<char *>(malloc(size + 1));
+			readString(reader, field_name, size);
+			long position = readFlat32Integer(reader);
+			reader.prepare(1);
+			OType type = (OType) reader.content[reader.cursor];
+			listener.startField(field_name, type);
+			int temp = reader.prepared;
+			reader.force_cursor(position);
+			readSimpleValue(reader, type, listener);
+			reader.force_cursor(temp);
+			listener.endField(field_name);
+			//std::cout << "read field:" << field_name << "position" << position << std::endl;
+			free(field_name);
+		} else {
+			// god sake
+		}
+	}
+}
+
 
 void readString(ContentBuffer & reader, char * str, int size) {
 	reader.prepare(size);

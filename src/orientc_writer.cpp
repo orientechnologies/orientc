@@ -27,6 +27,7 @@ public:
 	ContentBuffer header;
 	ContentBuffer data;
 	bool writeValueType;
+	bool writeMapType;
 	OType current;
 	std::list<std::pair<int, int> > pointers;
 	void writeRecordVersion();
@@ -38,7 +39,7 @@ public:
 };
 
 DocumentWriter::DocumentWriter() :
-		writeValueType(false), current(ANY) {
+		writeValueType(false),writeMapType(false), current(ANY) {
 
 }
 
@@ -51,6 +52,9 @@ void DocumentWriter::writeTypeIfNeeded(OType type) {
 	if (writeValueType) {
 		data.prepare(1);
 		data.content[data.cursor] = type;
+	}
+	if (writeMapType) {
+		header.content[data.cursor] = type;
 	}
 }
 
@@ -70,6 +74,7 @@ void DocumentWriter::startField(const char *name, OType type) {
 	pointers.push_back(toAdd);
 	header.prepare(1);
 	header.content[header.cursor] = type;
+	current = type;
 }
 
 void DocumentWriter::endField(const char *name, OType type) {
@@ -116,9 +121,11 @@ void RecordWriter::startDocument(const char * name) {
 void RecordWriter::startCollection(int size) {
 	DocumentWriter * front = writer->nested.front();
 	writeVarint(front->data, size);
-	front->writeValueType = true;
-	front->data.prepare(1);
-	front->data.content[front->data.cursor] = ANY;
+	if (front->current == EMBEDDEDLIST || front->current == EMBEDDEDSET) {
+		front->writeValueType = true;
+		front->data.prepare(1);
+		front->data.content[front->data.cursor] = ANY;
+	}
 }
 
 void RecordWriter::endCollection() {
@@ -132,7 +139,17 @@ void RecordWriter::startField(const char *name, OType type) {
 	if (type == EMBEDDED) {
 		writer->nested.push_front(new DocumentWriter());
 	}
+}
 
+void RecordWriter::startMap(int size) {
+	DocumentWriter *front = writer->nested.front();
+	front->writeTypeIfNeeded(INTEGER);
+	writeVarint(front->data, size);
+	writer->nested.push_front(new DocumentWriter());
+}
+
+void RecordWriter::mapKey(char * mapKey) {
+	startField(mapKey, ANY);
 }
 
 void RecordWriter::stringValue(const char * value) {
@@ -231,6 +248,17 @@ void RecordWriter::endField(const char *name, OType type) {
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
 	}
+}
+
+void RecordWriter::endMap() {
+	DocumentWriter *front = writer->nested.front();
+	int size;
+	char * content = front->writtenContent(&size);
+	writer->nested.pop_front();
+	delete front;
+	DocumentWriter *front1 = writer->nested.front();
+	front1->data.prepare(size);
+	memcpy(front1->data.content + front1->data.cursor, content, size);
 }
 
 void RecordWriter::endDocument() {

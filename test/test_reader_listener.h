@@ -1,10 +1,3 @@
-/*
- * test_reader_listener.h
- *
- *  Created on: 23 Jul 2015
- *      Author: tglman
- */
-
 #ifndef TEST_TEST_READER_LISTENER_H_
 #define TEST_TEST_READER_LISTENER_H_
 #include "../src/orientc_reader.h"
@@ -69,8 +62,15 @@ public:
 	virtual void startCollection(int size) {
 		collectionSize = size;
 	}
-	virtual void startMap(int size) {}
-	virtual void mapKey(char *size) {}
+	virtual void startMap(int size) {
+		mapSize = size;
+	}
+	virtual void mapKey(char *key) {
+		std::string exp("key");
+		exp+=mapCount;
+		if(std::string(key) == exp)
+			mapCount++;
+	}
 	virtual void endMap() {}
 	virtual void endCollection() {}
 
@@ -91,8 +91,10 @@ public:
 	long long date_time_value;
 	struct Link link_value;
 	int collectionSize;
+	int mapSize;
+	int mapCount;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);

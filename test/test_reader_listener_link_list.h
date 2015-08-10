@@ -38,8 +38,8 @@ public:
 	virtual void dateTimeValue(long long value) {
 	}
 	virtual void linkValue(struct Link &value) {
-		if(value.cluster == count)
-			count = value.cluster;
+		if(value.position == count)
+			count++;
 	}
 
 	virtual void startCollection(int size) {
@@ -52,7 +52,7 @@ public:
 
 	int collectionSize;
 	int count;
-	LinkListListener(): collectionSize(0), count(0)
+	LinkListListener(): collectionSize(0), count(1)
 	{
 	}
 	~LinkListListener() {

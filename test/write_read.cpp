@@ -38,7 +38,7 @@ START_TEST(test_simple_write_read)
 	} catch (const char * oh) {
 		std::cout << "oh" << oh;
 		std::cout.flush();
-
+		assert(false);
 	}
 
 END_TEST
@@ -128,7 +128,7 @@ START_TEST(test_all_simple_write_read)
 	} catch (const char * oh) {
 		std::cout << "oh" << oh;
 		std::cout.flush();
-
+		assert(false);
 	}
 
 END_TEST
@@ -188,7 +188,7 @@ START_TEST(test_embedded_collection_read_write)
 	} catch (const char * oh) {
 		std::cout << "oh" << oh;
 		std::cout.flush();
-
+		assert(false);
 	}
 
 END_TEST
@@ -224,12 +224,13 @@ START_TEST(test_link_collection_read_write)
 	} catch (const char * oh) {
 		std::cout << "oh" << oh;
 		std::cout.flush();
-
+		assert(false);
 	}
 
 END_TEST
 
-START_TEST(test_embedded_map_read_write)
+//START_TEST(test_embedded_map_read_write)
+void test_embedded_map_read_write(){
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
@@ -276,15 +277,16 @@ START_TEST(test_embedded_map_read_write)
 		free((void *) content);
 
 		assert(listener.mapSize == 12);
+		std::cout<<"map count "<<listener.mapCount;
 		assert(listener.mapCount == 12);
 
 	} catch (const char * oh) {
 		std::cout << "oh" << oh;
 		std::cout.flush();
-
+		assert(false);
 	}
-
-END_TEST
+}
+//END_TEST
 
 Suite * file_suite(void) {
 	Suite *s = suite_create("file");
@@ -293,7 +295,7 @@ Suite * file_suite(void) {
 	tcase_add_test(tc_core, test_all_simple_write_read);
 	tcase_add_test(tc_core, test_embedded_collection_read_write);
 	tcase_add_test(tc_core, test_link_collection_read_write);
-	tcase_add_test(tc_core, test_embedded_map_read_write);
+//	tcase_add_test(tc_core, test_embedded_map_read_write);
 	suite_add_tcase(s, tc_core);
 	return s;
 }
@@ -301,6 +303,7 @@ Suite * file_suite(void) {
 int main() {
 	int number_failed;
 	Suite *s = file_suite();
+	test_embedded_map_read_write();
 	SRunner *sr = srunner_create(s);
 	srunner_run_all(sr, CK_NORMAL);
 	number_failed = srunner_ntests_failed(sr);

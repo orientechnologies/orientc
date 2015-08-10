@@ -39,7 +39,7 @@ public:
 };
 
 DocumentWriter::DocumentWriter() :
-		writeValueType(false),writeMapType(false), current(ANY) {
+		writeValueType(false), writeMapType(false), current(ANY) {
 
 }
 
@@ -54,7 +54,8 @@ void DocumentWriter::writeTypeIfNeeded(OType type) {
 		data.content[data.cursor] = type;
 	}
 	if (writeMapType) {
-		header.content[data.cursor] = type;
+		data.prepare(1);
+		data.content[data.cursor] = type;
 	}
 }
 
@@ -143,13 +144,16 @@ void RecordWriter::startField(const char *name, OType type) {
 
 void RecordWriter::startMap(int size) {
 	DocumentWriter *front = writer->nested.front();
-	front->writeTypeIfNeeded(INTEGER);
 	writeVarint(front->data, size);
 	writer->nested.push_front(new DocumentWriter());
+	writer->nested.front()->writeMapType = true;
 }
 
 void RecordWriter::mapKey(char * mapKey) {
-	startField(mapKey, ANY);
+	DocumentWriter *front = writer->nested.front();
+	front->header.prepare(1);
+	front->header.content[front->header.cursor] = STRING;
+	front->startField(mapKey, ANY);
 }
 
 void RecordWriter::stringValue(const char * value) {
@@ -259,6 +263,7 @@ void RecordWriter::endMap() {
 	DocumentWriter *front1 = writer->nested.front();
 	front1->data.prepare(size);
 	memcpy(front1->data.content + front1->data.cursor, content, size);
+	free(content);
 }
 
 void RecordWriter::endDocument() {

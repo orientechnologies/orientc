@@ -1,6 +1,10 @@
 #include "helpers.h"
 #include <iostream>
+#include <sstream>
 #include <stdlib.h>
+#include <assert.h>
+
+#include "parse_exception.h"
 namespace Orient {
 
 ContentBuffer::ContentBuffer() :
@@ -14,16 +18,20 @@ ContentBuffer::ContentBuffer(char * content, const int content_size) :
 }
 
 void ContentBuffer::prepare(int next) {
+	assert(next > 0);
 	if (prepared + next > this->size) {
 		if (writing) {
 			char * new_content = reinterpret_cast<char *>(realloc(content, size * 2));
 			if (new_content == 0)
-				throw "out of memory";
+				throw parse_exception("out of memory");
 			content = new_content;
 			size *= 2;
 			std::cout << "reallocated" << std::endl;
-		} else
-			throw " out of content size";
+		} else {
+			std::stringstream ss;
+			ss<<"out of content size:"<<this->size<<" nextCursor:"<<prepared + next;
+			throw parse_exception(ss.str());
+		}
 	}
 	cursor = prepared;
 	prepared += next;

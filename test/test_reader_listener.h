@@ -1,7 +1,7 @@
 #ifndef TEST_TEST_READER_LISTENER_H_
 #define TEST_TEST_READER_LISTENER_H_
 #include "../src/orientc_reader.h"
-
+#include <sstream>
 using namespace Orient;
 
 class TrackerListener: public RecordParseListener {
@@ -66,10 +66,10 @@ public:
 		mapSize = size;
 	}
 	virtual void mapKey(char *key) {
-		std::string exp("key");
-		exp+=mapCount;
-		if(std::string(key) == exp)
-			mapCount++;
+		std::stringstream ss;
+		ss<<"key"<<mapCount;
+		assert(std::string(key) == ss.str());
+		mapCount++;
 	}
 	virtual void endMap() {}
 	virtual void endCollection() {}

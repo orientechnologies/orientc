@@ -6,7 +6,7 @@ using namespace Orient;
 
 class LinkListListener: public RecordParseListener {
 public:
-	virtual void startDocument(char * name) {
+	virtual void startDocument(const char * name) {
 	}
 	virtual void endDocument() {
 
@@ -15,7 +15,7 @@ public:
 	}
 	virtual void endField(const char * name) {
 	}
-	virtual void stringValue(char * value) {
+	virtual void stringValue(const char * value) {
 	}
 	virtual void intValue(long value) {
 	}
@@ -31,7 +31,7 @@ public:
 	}
 	virtual void doubleValue(double value) {
 	}
-	virtual void binaryValue(char * value, int length) {
+	virtual void binaryValue(const char * value, int length) {
 	}
 	virtual void dateValue(long long value) {
 	}
@@ -46,7 +46,7 @@ public:
 		collectionSize =size;
 	}
 	virtual void startMap(int size) {}
-	virtual void mapKey(char *size) {}
+	virtual void mapKey(const char *size) {}
 	virtual void endMap() {}
 	virtual void endCollection() {}
 

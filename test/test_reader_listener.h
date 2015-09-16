@@ -1,12 +1,13 @@
 #ifndef TEST_TEST_READER_LISTENER_H_
 #define TEST_TEST_READER_LISTENER_H_
 #include "../src/orientc_reader.h"
+#include <string.h>
 #include <sstream>
 using namespace Orient;
 
 class TrackerListener: public RecordParseListener {
 public:
-	virtual void startDocument(char * name) {
+	virtual void startDocument(const char * name) {
 		this->class_name = strdup(name);
 	}
 	virtual void endDocument() {
@@ -19,7 +20,8 @@ public:
 	virtual void endField(const char * name) {
 		this->balanced_count--;
 	}
-	virtual void stringValue(char * value) {
+	virtual void stringValue( const char * value) {
+		if(a_string_value != 0) free(a_string_value);
 		a_string_value = strdup(value);
 	}
 	virtual void intValue(long value) {
@@ -43,7 +45,7 @@ public:
 	virtual void doubleValue(double value) {
 		double_value = value;
 	}
-	virtual void binaryValue(char * value, int length) {
+	virtual void binaryValue(const char * value, int length) {
 		binary_value = (char *)malloc(length);
 		memcpy(binary_value,value,length);
 		binary_size = length;
@@ -65,7 +67,7 @@ public:
 	virtual void startMap(int size) {
 		mapSize = size;
 	}
-	virtual void mapKey(char *key) {
+	virtual void mapKey(const char *key) {
 		std::stringstream ss;
 		ss<<"key"<<mapCount;
 		assert(std::string(key) == ss.str());

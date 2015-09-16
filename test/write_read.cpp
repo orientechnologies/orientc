@@ -1,13 +1,13 @@
 #include "../src/orientc.h"
 #include <iostream>
-#include <check.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "test_reader_listener.h"
 #include "test_reader_listener_link_list.h"
 using namespace Orient;
 
-START_TEST(test_simple_write_read)
+void test_simple_write_read()
+{
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
@@ -27,7 +27,7 @@ START_TEST(test_simple_write_read)
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
-		reader.parse((char *) content, size, listener);
+		reader.parse((const unsigned char *) content, size, listener);
 		free((void *) content);
 		assert(listener.field_count == 2);
 		assert(listener.class_name != 0);
@@ -41,9 +41,10 @@ START_TEST(test_simple_write_read)
 		assert(false);
 	}
 
-END_TEST
+}
 
-START_TEST(test_all_simple_write_read)
+void test_all_simple_write_read()
+{
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
@@ -104,7 +105,7 @@ START_TEST(test_all_simple_write_read)
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
-		reader.parse((char *) content, size, listener);
+		reader.parse((const unsigned char *) content, size, listener);
 		free((void *) content);
 
 		assert(listener.field_count == 12);
@@ -131,9 +132,10 @@ START_TEST(test_all_simple_write_read)
 		assert(false);
 	}
 
-END_TEST
+}
 
-START_TEST(test_embedded_collection_read_write)
+void test_embedded_collection_read_write()
+{
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
@@ -163,7 +165,7 @@ START_TEST(test_embedded_collection_read_write)
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
-		reader.parse((char *) content, size, listener);
+		reader.parse((const unsigned char *) content, size, listener);
 		free((void *) content);
 
 		assert(listener.field_count == 1);
@@ -191,7 +193,7 @@ START_TEST(test_embedded_collection_read_write)
 		assert(false);
 	}
 
-END_TEST
+}
 
 void test_link_collection_read_write()
 {
@@ -216,7 +218,7 @@ void test_link_collection_read_write()
 		RecordParser reader("ORecordSerializerBinary");
 
 		LinkListListener listener;
-		reader.parse((char *) content, size, listener);
+		reader.parse((const unsigned char *) content, size, listener);
 		free((void *) content);
 
 		assert(listener.collectionSize == 10);
@@ -273,7 +275,7 @@ void test_embedded_map_read_write(){
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
-		reader.parse((char *) content, size, listener);
+		reader.parse((const unsigned char *) content, size, listener);
 		free((void *) content);
 
 		assert(listener.mapSize == 12);
@@ -287,26 +289,13 @@ void test_embedded_map_read_write(){
 	}
 }
 
-Suite * file_suite(void) {
-	Suite *s = suite_create("file");
-	TCase *tc_core = tcase_create("simmetric_writer_reader");
-	tcase_add_test(tc_core, test_simple_write_read);
-	tcase_add_test(tc_core, test_all_simple_write_read);
-	tcase_add_test(tc_core, test_embedded_collection_read_write);
-//	tcase_add_test(tc_core, test_link_collection_read_write);
-//	tcase_add_test(tc_core, test_embedded_map_read_write);
-	suite_add_tcase(s, tc_core);
-	return s;
-}
 
 int main() {
 	int number_failed;
-	Suite *s = file_suite();
+	test_simple_write_read();
+	test_all_simple_write_read();
 	test_link_collection_read_write();
 	test_embedded_map_read_write();
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_NORMAL);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+	test_embedded_collection_read_write();
+	return 0;
 }

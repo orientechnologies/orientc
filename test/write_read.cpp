@@ -28,7 +28,7 @@ void test_simple_write_read()
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
-		free((void *) content);
+		delete [] content;
 		assert(listener.field_count == 2);
 		assert(listener.class_name != 0);
 		assert(std::string(listener.class_name) == std::string("Test"));
@@ -106,7 +106,7 @@ void test_all_simple_write_read()
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
-		free((void *) content);
+		delete []content;
 
 		assert(listener.field_count == 12);
 		assert(listener.class_name != 0);
@@ -166,7 +166,7 @@ void test_embedded_collection_read_write()
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
-		free((void *) content);
+		delete [] content;
 
 		assert(listener.field_count == 1);
 		assert(listener.collectionSize == 12);
@@ -219,7 +219,7 @@ void test_link_collection_read_write()
 
 		LinkListListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
-		free((void *) content);
+		delete [] content;
 
 		assert(listener.collectionSize == 10);
 		std::cout<<"count"<<listener.count;
@@ -276,7 +276,7 @@ void test_embedded_map_read_write(){
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
-		free((void *) content);
+		delete [] content;
 
 		assert(listener.mapSize == 12);
 		std::cout<<"map count "<<listener.mapCount;

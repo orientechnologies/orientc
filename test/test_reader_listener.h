@@ -7,22 +7,22 @@ using namespace Orient;
 
 class TrackerListener: public RecordParseListener {
 public:
-	virtual void startDocument(const char * name) {
-		this->class_name = strdup(name);
+	virtual void startDocument(const char * name, size_t class_name_length) {
+		this->class_name = strndup(name,class_name_length);
 	}
 	virtual void endDocument() {
 
 	}
-	virtual void startField(const char * name, OType type) {
+	virtual void startField(const char * name,size_t name_length, OType type) {
 		this->field_count++;
 		this->balanced_count++;
 	}
-	virtual void endField(const char * name) {
+	virtual void endField(const char * name,size_t name_length) {
 		this->balanced_count--;
 	}
-	virtual void stringValue( const char * value) {
+	virtual void stringValue( const char * value, size_t value_lenght) {
 		if(a_string_value != 0) free(a_string_value);
-		a_string_value = strdup(value);
+		a_string_value = strndup(value,value_lenght);
 	}
 	virtual void intValue(long value) {
 		integer_value = value;
@@ -67,10 +67,10 @@ public:
 	virtual void startMap(int size) {
 		mapSize = size;
 	}
-	virtual void mapKey(const char *key) {
+	virtual void mapKey(const char *key ,size_t key_length) {
 		std::stringstream ss;
 		ss<<"key"<<mapCount;
-		assert(std::string(key) == ss.str());
+		assert(std::string(key,key_length) == ss.str());
 		mapCount++;
 	}
 	virtual void endMap() {}

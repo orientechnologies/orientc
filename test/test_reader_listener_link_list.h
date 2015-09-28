@@ -6,16 +6,16 @@ using namespace Orient;
 
 class LinkListListener: public RecordParseListener {
 public:
-	virtual void startDocument(const char * name) {
+	virtual void startDocument(const char * name, size_t class_name_length) {
 	}
 	virtual void endDocument() {
 
 	}
-	virtual void startField(const char * name, OType type) {
+	virtual void startField(const char * name,size_t name_length, OType type) {
 	}
-	virtual void endField(const char * name) {
+	virtual void endField(const char * name,size_t name_length) {
 	}
-	virtual void stringValue(const char * value) {
+	virtual void stringValue(const char * value,size_t value_lenght) {
 	}
 	virtual void intValue(long value) {
 	}
@@ -46,7 +46,7 @@ public:
 		collectionSize =size;
 	}
 	virtual void startMap(int size) {}
-	virtual void mapKey(const char *size) {}
+	virtual void mapKey(const char *name ,size_t key_length) {}
 	virtual void endMap() {}
 	virtual void endCollection() {}
 

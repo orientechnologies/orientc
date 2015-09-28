@@ -6,16 +6,16 @@ using namespace Orient;
 
 class MapListener: public RecordParseListener {
 public:
-	virtual void startDocument(const char * name) {
+	virtual void startDocument(const char * name, size_t class_name_length) {
 	}
 	virtual void endDocument() {
 
 	}
-	virtual void startField(const char * name, OType type) {
+	virtual void startField(const char * name,size_t name_length, OType type) {
 	}
-	virtual void endField(const char * name) {
+	virtual void endField(const char * name,size_t name_length) {
 	}
-	virtual void stringValue(const char * value) {
+	virtual void stringValue(const char * value,size_t value_lenght) {
 	}
 	virtual void intValue(long value) {
 	}
@@ -47,10 +47,10 @@ public:
 	virtual void startMap(int size) {
 		mapSize =size;
 	}
-	virtual void mapKey(const char *key) {
+	virtual void mapKey(const char *key ,size_t key_length) {
 		std::string exp("key");
 		exp+=count;
-		if(std::string(key) == exp)
+		if(std::string(key,key_lenght) == exp)
 		count++;
 	}
 	virtual void endMap() {}

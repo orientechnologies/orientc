@@ -3,13 +3,14 @@
 #include <sstream>
 #include <stdlib.h>
 #include <assert.h>
+#include <vector>
 
 #include "parse_exception.h"
 namespace Orient {
 
 ContentBuffer::ContentBuffer() :
 		content(0), cursor(0), prepared(0), size(0), writing(true) {
-	content = reinterpret_cast<unsigned char *>(malloc(2048));
+	content = new unsigned char[2048];
 	size = 2048;
 }
 
@@ -21,12 +22,11 @@ void ContentBuffer::prepare(int next) {
 	assert(next > 0);
 	if (prepared + next > this->size) {
 		if (writing) {
-			unsigned char * new_content = reinterpret_cast<unsigned char *>(realloc(content, size * 2));
-			if (new_content == 0)
-				throw parse_exception("out of memory");
+			unsigned char * new_content = new unsigned char[size * 2];
+			std::copy(content, content + size, new_content);
+			delete [] content;
 			content = new_content;
 			size *= 2;
-			//std::cout << "reallocated" << std::endl;
 		} else {
 			std::stringstream ss;
 			ss << "out of content size:" << this->size << " nextCursor:" << prepared + next;
@@ -40,7 +40,7 @@ void ContentBuffer::prepare(int next) {
 
 ContentBuffer::~ContentBuffer() {
 	if (writing)
-		free(content);
+		delete []content;
 }
 
 void ContentBuffer::force_cursor(int position) {
@@ -56,7 +56,7 @@ int64_t readVarint(ContentBuffer &reader) {
 	uint64_t b;
 	do {
 		reader.prepare(1);
-		b = (uint64_t)reader.content[reader.cursor];
+		b = (uint64_t) reader.content[reader.cursor];
 		if ((b & 0x80) != 0) {
 			value |= ((b & 0x7F) << i);
 			i += 7;

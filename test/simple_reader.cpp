@@ -57,6 +57,40 @@ void test_simple_reader_big() {
 	}
 }
 
+void test_simple_reader_all() {
+	try {
+		RecordParser parser("ORecordSerializerBinary");
+		char content[10000];
+		std::fstream document_data("data/all_fields.data");
+		document_data.read(content, 10000);
+		SimpleTrackerListener listener;
+		parser.parse((unsigned char *) content, 10000, listener);
+		assert(listener.field_count == 21);
+		assert(listener.balanced_count == 0);
+		assert(listener.integer_value == 21);
+		assert(listener.float_value == (float )10.2);
+		std::cout << listener.double_value;
+		assert(listener.double_value == (double )11.2);
+		assert(listener.short_value == 2);
+		assert(listener.long_value == 32);
+		assert(listener.binary_size == 4);
+		assert(listener.link_value.cluster == 10 && listener.link_value.position ==20);
+		assert(listener.binary_value[0] == 'a' && listener.binary_value[1] == 'd' && listener.binary_value[2] == 'a' && listener.binary_value[3] == 'd');
+		//Checking that the class name if the one of the embedded document.
+		assert(std::string(listener.class_name) == std::string("test1"));
+		assert(std::string(listener. a_string_value) == std::string("value2"));
+		assert(listener.linkList.size() == 3);
+		assert(listener.linkSet.size() == 3);
+		//TODO: implement linkmap
+//		assert(listener.linkMap.size() == 2);
+		assert(listener.embeddedList.size() == 2);
+		assert(listener.embeddedSet.size() == 2);
+		assert(listener.embeddedMap.size() == 2);
+	} catch (...) {
+		assert(false);
+	}
+}
+
 void test_fail_wrong_format() {
 	try {
 		RecordParser parser("sdfsdfs");
@@ -70,6 +104,7 @@ int main() {
 	test_fail_wrong_format();
 	test_simple_reader_many();
 	test_simple_reader_big();
+	test_simple_reader_all();
 	return 0;
 }
 

@@ -117,6 +117,7 @@ void test_all_simple_write_read()
 		assert(listener.boolean_value == true);
 		assert(listener.short_value == 20);
 		assert(listener.byte_value == 40);
+		std::cout<<listener.date_value <<std::endl;
 		assert(listener.float_value == (float )50.04);
 		assert(listener.double_value == (double )60.043);
 		assert(listener.binary_size == 3);

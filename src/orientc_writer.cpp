@@ -4,19 +4,11 @@
 #include <string.h>
 #include <list>
 #include <utility>
+#include <endian.h>
 
 #include "helpers.h"
 
 namespace Orient {
-union ftl {
-	float fl;
-	char bytes[4];
-};
-
-union dtll {
-	double db;
-	char bytes[8];
-};
 
 void writeString(ContentBuffer & buffer, const char *string);
 void writeFlat32Integer(ContentBuffer & buffer, long value);
@@ -149,7 +141,7 @@ void RecordWriter::startMap(int size) {
 	writer->nested.front()->writeMapType = true;
 }
 
-void RecordWriter::mapKey(char * mapKey) {
+void RecordWriter::mapKey(const char * mapKey) {
 	DocumentWriter *front = writer->nested.front();
 	front->header.prepare(1);
 	front->header.content[front->header.cursor] = STRING;
@@ -209,20 +201,20 @@ void RecordWriter::booleanValue(bool value) {
 
 void RecordWriter::floatValue(float value) {
 	DocumentWriter *front = writer->nested.front();
-	union ftl tran;
-	tran.fl = value;
 	front->writeTypeIfNeeded(FLOAT);
-	front->data.prepare(4);
-	memcpy(front->data.content + front->data.cursor, tran.bytes, 4);
+	int32_t i_value;
+	memcpy(&i_value,&value,4);
+	writeFlat32Integer(front->data,i_value);
 }
 
 void RecordWriter::doubleValue(double value) {
 	DocumentWriter *front = writer->nested.front();
-	union dtll tran2;
-	tran2.db = value;
 	front->writeTypeIfNeeded(DOUBLE);
 	front->data.prepare(8);
-	memcpy(front->data.content + front->data.cursor, tran2.bytes, 8);
+	int64_t i_val;
+	memcpy(&i_val, &value, 8);
+	i_val = htobe64(i_val);
+	memcpy(front->data.content + front->data.cursor,&i_val, 8);
 }
 
 void RecordWriter::binaryValue(const char * value, int size) {
@@ -263,7 +255,7 @@ void RecordWriter::endMap() {
 	DocumentWriter *front1 = writer->nested.front();
 	front1->data.prepare(size);
 	memcpy(front1->data.content + front1->data.cursor, content, size);
-	delete []content;
+	delete[] content;
 }
 
 void RecordWriter::endDocument() {
@@ -283,10 +275,8 @@ void writeString(ContentBuffer & buffer, const char *string) {
 
 void writeFlat32Integer(ContentBuffer & buffer, long value) {
 	buffer.prepare(4);
-	buffer.content[buffer.cursor] = (char) ((value >> 24) & 0xFF);
-	buffer.content[buffer.cursor + 1] = (char) ((value >> 16) & 0xFF);
-	buffer.content[buffer.cursor + 2] = (char) ((value >> 8) & 0xFF);
-	buffer.content[buffer.cursor + 3] = (char) ((value >> 0) & 0xFF);
+	value = htobe32(value);
+	memcpy(buffer.content + buffer.cursor, &value, 4);
 }
 
 }

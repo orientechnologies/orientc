@@ -20,7 +20,7 @@ public:
 	void startDocument(const char * className);
 	void startCollection(int size);
 	void startMap(int size);
-	void mapKey(char * mapKey);
+	void mapKey(const char * mapKey);
 	void startField(const char * name,OType type);
 	void endField(const char * name,OType type);
 	void stringValue(const char * value);

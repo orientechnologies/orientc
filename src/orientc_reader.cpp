@@ -4,26 +4,16 @@
 #include "helpers.h"
 #include "parse_exception.h"
 #include <arpa/inet.h>
+#include <endian.h>
 
 namespace Orient {
 
-union ftl {
-	float fl;
-	char bytes[4];
-};
-
-union dtll {
-	double db;
-	char bytes[8];
-};
-
 void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & listener);
-void readString(ContentBuffer & reader, char * str, int size);
-void readValueString(ContentBuffer & reader, RecordParseListener & listener);
+inline void readValueString(ContentBuffer & reader, RecordParseListener & listener);
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener);
 void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener);
 void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener);
-void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
+inline void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
 void readDocument(ContentBuffer &reader, RecordParseListener & listener);
 int32_t readFlat32Integer(ContentBuffer & reader);
 
@@ -63,7 +53,7 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 			reader.force_cursor(temp);
 			listener.endField(field_name,size);
 		} else {
-			// god sake
+			throw new parse_exception("property id not supported by network serialization");
 		}
 	}
 }
@@ -107,17 +97,20 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	}
 		break;
 	case FLOAT: {
-		union ftl tran;
-		reader.prepare(4);
-		memcpy(tran.bytes, reader.content + reader.cursor, 4);
-		listener.floatValue(tran.fl);
+		int32_t i_val= readFlat32Integer(reader);
+		float fl;
+		memcpy(&fl,&i_val,4);
+		listener.floatValue(fl);
 	}
 		break;
 	case DOUBLE: {
-		union dtll tran2;
+		int64_t i_val;
 		reader.prepare(8);
-		memcpy(tran2.bytes, reader.content + reader.cursor, 8);
-		listener.doubleValue(tran2.db);
+		memcpy(&i_val, reader.content + reader.cursor, 8);
+		i_val = be64toh(i_val);
+		double db;
+		memcpy(&db,&i_val,8);
+		listener.doubleValue(db);
 	}
 		break;
 	case DATETIME: {
@@ -221,21 +214,12 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 	listener.endMap();
 }
 
-void readString(ContentBuffer & reader, char * str, int size) {
-	reader.prepare(size);
-	memcpy(str, reader.content + reader.cursor, size);
-	str[size] = 0;
-}
-
 int32_t readFlat32Integer(ContentBuffer & reader) {
-	int32_t value = 0;
+	int32_t value;
 	reader.prepare(4);
-	value |= ((int32_t) 0xffffff & (int32_t) reader.content[reader.cursor]) << 24;
-	value |= ((int32_t) 0xffffff & ((int32_t) reader.content[reader.cursor + 1]) << 16);
-	value |= ((int32_t) 0xffffff & (int32_t) reader.content[reader.cursor + 2]) << 8;
-	value |= ((int32_t) 0xffffff & (int32_t) reader.content[reader.cursor + 3]);
+	memcpy(&value,reader.content+reader.cursor,4);
+	value = be32toh(value);
 	return value;
-
 }
 
 }

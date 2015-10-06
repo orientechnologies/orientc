@@ -38,7 +38,7 @@ public:
 	void endMap();
 	void endCollection();
 	void endDocument();
-	const char * writtenContent(int *size);
+	const unsigned char * writtenContent(int *size);
 	~RecordWriter();
 private:
 	InternalWriter *writer;

@@ -11,7 +11,9 @@
 namespace Orient {
 
 void writeString(ContentBuffer & buffer, const char *string);
-void writeFlat32Integer(ContentBuffer & buffer, long value);
+void writeFlat16Integer(ContentBuffer & buffer, int16_t value);
+void writeFlat32Integer(ContentBuffer & buffer, int32_t value);
+void writeFlat64Integer(ContentBuffer & buffer, int64_t value);
 
 class DocumentWriter {
 public:
@@ -27,7 +29,7 @@ public:
 	void startField(const char *name, OType type);
 	void endField(const char *name, OType type);
 	void writeTypeIfNeeded(OType type);
-	char * writtenContent(int *size);
+	unsigned char * writtenContent(int *size);
 };
 
 DocumentWriter::DocumentWriter() :
@@ -73,7 +75,7 @@ void DocumentWriter::startField(const char *name, OType type) {
 void DocumentWriter::endField(const char *name, OType type) {
 }
 
-char * DocumentWriter::writtenContent(int * size) {
+unsigned char * DocumentWriter::writtenContent(int * size) {
 	writeVarint(header, 0);
 	int headerSize = header.prepared;
 	int dataSize = data.prepared;
@@ -84,7 +86,7 @@ char * DocumentWriter::writtenContent(int * size) {
 		header.force_cursor(pair.first);
 		writeFlat32Integer(header, pair.second + headerSize);
 	}
-	char * all = new char[wholeSize];
+	unsigned char * all = new unsigned char[wholeSize];
 	memcpy(all, header.content, headerSize);
 	memcpy(all + headerSize, data.content, dataSize);
 	*size = wholeSize;
@@ -113,11 +115,17 @@ void RecordWriter::startDocument(const char * name) {
 
 void RecordWriter::startCollection(int size) {
 	DocumentWriter * front = writer->nested.front();
-	writeVarint(front->data, size);
-	if (front->current == EMBEDDEDLIST || front->current == EMBEDDEDSET) {
-		front->writeValueType = true;
+	if (front->current == LINKBAG) {
 		front->data.prepare(1);
-		front->data.content[front->data.cursor] = ANY;
+		front->data.content[front->data.cursor] = 0x1;
+		writeFlat32Integer(front->data, size);
+	} else {
+		writeVarint(front->data, size);
+		if (front->current == EMBEDDEDLIST || front->current == EMBEDDEDSET) {
+			front->writeValueType = true;
+			front->data.prepare(1);
+			front->data.content[front->data.cursor] = ANY;
+		}
 	}
 }
 
@@ -235,9 +243,14 @@ void RecordWriter::binaryValue(const char * value, int size) {
 
 void RecordWriter::linkValue(struct Link &link) {
 	DocumentWriter *front = writer->nested.front();
-	front->writeTypeIfNeeded(LINK);
-	writeVarint(front->data, link.cluster);
-	writeVarint(front->data, link.position);
+	if (front->current == LINKBAG) {
+		writeFlat16Integer(front->data, link.cluster);
+		writeFlat64Integer(front->data, link.position);
+	} else {
+		front->writeTypeIfNeeded(LINK);
+		writeVarint(front->data, link.cluster);
+		writeVarint(front->data, link.position);
+	}
 }
 
 void RecordWriter::endField(const char *name, OType type) {
@@ -245,7 +258,7 @@ void RecordWriter::endField(const char *name, OType type) {
 	front->endField(name, type);
 	if (type == EMBEDDED) {
 		int size;
-		char * content = front->writtenContent(&size);
+		unsigned char * content = front->writtenContent(&size);
 		writer->nested.pop_front();
 		delete front;
 		DocumentWriter *front1 = writer->nested.front();
@@ -260,7 +273,7 @@ void RecordWriter::endMap() {
 		writer->nested.pop_front();
 		DocumentWriter *front1 = writer->nested.front();
 		int size;
-		char * content = front->writtenContent(&size);
+		unsigned char * content = front->writtenContent(&size);
 		delete front;
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
@@ -272,7 +285,7 @@ void RecordWriter::endDocument() {
 
 }
 
-const char * RecordWriter::writtenContent(int * size) {
+const unsigned char * RecordWriter::writtenContent(int * size) {
 	return writer->nested.front()->writtenContent(size);
 }
 
@@ -283,10 +296,22 @@ void writeString(ContentBuffer & buffer, const char *string) {
 	memcpy(buffer.content + buffer.cursor, string, size);
 }
 
-void writeFlat32Integer(ContentBuffer & buffer, long value) {
+void writeFlat32Integer(ContentBuffer & buffer, int32_t value) {
 	buffer.prepare(4);
 	value = htobe32(value);
 	memcpy(buffer.content + buffer.cursor, &value, 4);
+}
+
+void writeFlat16Integer(ContentBuffer & buffer, int16_t value) {
+	buffer.prepare(2);
+	value = htobe16(value);
+	memcpy(buffer.content + buffer.cursor, &value, 2);
+}
+
+void writeFlat64Integer(ContentBuffer & buffer, int64_t value) {
+	buffer.prepare(8);
+	value = htobe64(value);
+	memcpy(buffer.content + buffer.cursor, &value, 8);
 }
 
 }

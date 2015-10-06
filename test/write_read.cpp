@@ -27,7 +27,7 @@ void test_simple_write_read()
 
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
@@ -105,7 +105,7 @@ void test_all_simple_write_read()
 
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
@@ -166,7 +166,7 @@ void test_embedded_collection_read_write()
 		writer.endDocument();
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
@@ -219,7 +219,7 @@ void test_link_collection_read_write()
 		writer.endDocument();
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		LinkListListener listener;
@@ -276,7 +276,7 @@ void test_embedded_map_read_write(){
 		writer.endDocument();
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
@@ -316,7 +316,7 @@ void test_link_map_read_write(){
 		writer.endDocument();
 		int size;
 
-		const char * content = writer.writtenContent(&size);
+		const unsigned char * content = writer.writtenContent(&size);
 		RecordParser reader("ORecordSerializerBinary");
 
 		TrackerListener listener;
@@ -335,6 +335,44 @@ void test_link_map_read_write(){
 }
 
 
+void test_link_bag_read_write(){
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("testLinkBag", LINKBAG);
+		writer.startCollection(2);
+
+		struct Link link;
+		link.cluster =10;
+		link.position = 20;
+		writer.linkValue(link);
+
+		link.cluster =10;
+		link.position = 22;
+		writer.linkValue(link);
+
+		writer.endCollection();
+		writer.endField("testLinkBag", LINKBAG);
+		writer.endDocument();
+		int size;
+
+		const unsigned char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		TrackerListener listener;
+		reader.parse(content, size, listener);
+		delete [] content;
+
+		assert(listener.collectionSize == 2);
+		assert(listener.link_value.cluster == 10 && listener.link_value.position == 22 );
+
+	} catch (parse_exception & oh) {
+		std::cout << "oh" << oh.what();
+		std::cout.flush();
+		assert(false);
+	}
+}
+
 
 
 int main() {
@@ -345,5 +383,6 @@ int main() {
 	test_embedded_map_read_write();
 	test_embedded_collection_read_write();
 	test_link_map_read_write();
+	test_link_bag_read_write();
 	return 0;
 }

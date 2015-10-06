@@ -127,11 +127,11 @@ public:
 		this->balanced_count--;
 	}
 	virtual void stringValue( const char * value, size_t value_lenght) {
-		if(type == EMBEDDEDLIST){
+		if(type == EMBEDDEDLIST) {
 			embeddedList.push_back(std::string(value,value_lenght));
-		}else if( type == EMBEDDEDSET){
+		} else if( type == EMBEDDEDSET) {
 			embeddedSet.insert(std::string(value,value_lenght));
-		}else if( type == EMBEDDEDMAP){
+		} else if( type == EMBEDDEDMAP) {
 			embeddedMap[key] == std::string(value,value_lenght);
 		}
 		if(a_string_value != 0) free(a_string_value);
@@ -174,13 +174,14 @@ public:
 		if(type == LINK) {
 			link_value.cluster =value.cluster;
 			link_value.position=value.position;
-		}else if(type == LINKLIST){
+		} else if(type == LINKLIST) {
 			linkList.push_back(value);
-		}else if(type == LINKSET){
+		} else if(type == LINKSET) {
 			linkSet.push_back(value);
-		}else if(type == LINKMAP){
-			std::cout<<"linkmap"<<std::endl;
+		} else if(type == LINKMAP) {
 			linkMap[key] = value;
+		} else if(type == LINKBAG) {
+			embeddedRidbag.push_back(value);
 		}
 	}
 
@@ -216,9 +217,10 @@ public:
 	int collectionSize;
 	int mapSize;
 	int mapCount;
-	OType  type;
+	OType type;
 	std::list<struct Link> linkList;
 	std::list<struct Link> linkSet;
+	std::list<struct Link> embeddedRidbag;
 	std::map<std::string,struct Link> linkMap;
 	std::list<std::string> embeddedList;
 	std::set<std::string> embeddedSet;

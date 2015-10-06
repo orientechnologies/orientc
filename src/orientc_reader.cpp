@@ -16,8 +16,10 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener);
 inline void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
 void readDocument(ContentBuffer &reader, RecordParseListener & listener);
+void readValueRidbag(ContentBuffer &reader, RecordParseListener & listener);
+int16_t readFlat16Integer(ContentBuffer & reader);
 int32_t readFlat32Integer(ContentBuffer & reader);
-
+int64_t readFlat64Integer(ContentBuffer & reader);
 RecordParser::RecordParser(std::string formatter) {
 	if (formatter != "ORecordSerializerBinary")
 		throw parse_exception("Formatter not supported");
@@ -151,6 +153,10 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		readDocument(reader, listener);
 	}
 		break;
+	case LINKBAG: {
+		readValueRidbag(reader, listener);
+	}
+		break;
 	default:
 		break;
 	}
@@ -232,6 +238,41 @@ void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener) {
 		listener.mapKey(key_name, key_size);
 		readValueLink(reader, listener);
 	}
+}
+
+void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
+	reader.prepare(1);
+	unsigned char c = reader.content[reader.cursor];
+	if ((c & 1) == 1) {
+		int32_t size = readFlat32Integer(reader);
+		listener.startCollection(size);
+		while (size-- > 0) {
+			struct Link link;
+			link.cluster = readFlat16Integer(reader);
+			link.position = readFlat64Integer(reader);
+			listener.linkValue(link);
+		}
+		listener.endCollection();
+	} else {
+
+	}
+
+}
+
+int64_t readFlat64Integer(ContentBuffer & reader) {
+	int64_t value;
+	reader.prepare(8);
+	memcpy(&value, reader.content + reader.cursor, 8);
+	value = be64toh(value);
+	return value;
+}
+
+int16_t readFlat16Integer(ContentBuffer & reader) {
+	int16_t value;
+	reader.prepare(2);
+	memcpy(&value, reader.content + reader.cursor, 2);
+	value = be16toh(value);
+	return value;
 }
 
 int32_t readFlat32Integer(ContentBuffer & reader) {

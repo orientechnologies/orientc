@@ -33,7 +33,7 @@ enum OType {
 	DATE =19,
 	CUSTOM = 20,
 	DECIMAL = 21,
-	RIDBAG = 22,
+	LINKBAG = 22,
 	ANY = 23
 };
 struct Link {

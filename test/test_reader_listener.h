@@ -112,6 +112,7 @@ public:
 class SimpleTrackerListener: public RecordParseListener {
 public:
 	virtual void startDocument(const char * name, size_t class_name_length) {
+		if(this->class_name != 0) free(this->class_name);
 		this->class_name = strndup(name,class_name_length);
 	}
 	virtual void endDocument() {

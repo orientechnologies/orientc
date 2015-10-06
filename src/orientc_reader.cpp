@@ -13,6 +13,7 @@ inline void readValueString(ContentBuffer & reader, RecordParseListener & listen
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener);
 void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener);
 void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener);
+void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener);
 inline void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
 void readDocument(ContentBuffer &reader, RecordParseListener & listener);
 int32_t readFlat32Integer(ContentBuffer & reader);
@@ -34,24 +35,24 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	int64_t class_size = readVarint(reader);
 	if (class_size != 0) {
 		reader.prepare(class_size);
-		char * class_name = (char *)reader.content + reader.cursor;
-		listener.startDocument(class_name,class_size);
+		char * class_name = (char *) reader.content + reader.cursor;
+		listener.startDocument(class_name, class_size);
 	} else
-		listener.startDocument("",0);
+		listener.startDocument("", 0);
 	int64_t size = 0;
 	while ((size = readVarint(reader)) != 0) {
 		if (size > 0) {
 			reader.prepare(size);
-			char * field_name = (char *)reader.content + reader.cursor;
+			char * field_name = (char *) reader.content + reader.cursor;
 			int32_t position = readFlat32Integer(reader);
 			reader.prepare(1);
 			OType type = (OType) reader.content[reader.cursor];
-			listener.startField(field_name, size,type);
+			listener.startField(field_name, size, type);
 			int temp = reader.prepared;
 			reader.force_cursor(position);
 			readSimpleValue(reader, type, listener);
 			reader.force_cursor(temp);
-			listener.endField(field_name,size);
+			listener.endField(field_name, size);
 		} else {
 			throw new parse_exception("property id not supported by network serialization");
 		}
@@ -97,9 +98,9 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	}
 		break;
 	case FLOAT: {
-		int32_t i_val= readFlat32Integer(reader);
+		int32_t i_val = readFlat32Integer(reader);
 		float fl;
-		memcpy(&fl,&i_val,4);
+		memcpy(&fl, &i_val, 4);
 		listener.floatValue(fl);
 	}
 		break;
@@ -109,7 +110,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		memcpy(&i_val, reader.content + reader.cursor, 8);
 		i_val = be64toh(i_val);
 		double db;
-		memcpy(&db,&i_val,8);
+		memcpy(&db, &i_val, 8);
 		listener.doubleValue(db);
 	}
 		break;
@@ -130,7 +131,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 	case BINARY: {
 		int64_t value_size = readVarint(reader);
 		reader.prepare(value_size);
-		listener.binaryValue((char *)reader.content + reader.cursor, value_size);
+		listener.binaryValue((char *) reader.content + reader.cursor, value_size);
 	}
 		break;
 	case EMBEDDEDLIST:
@@ -140,6 +141,10 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		break;
 	case EMBEDDEDMAP: {
 		readValueEmbeddedMap(reader, listener);
+	}
+		break;
+	case LINKMAP: {
+		readValueLinkMap(reader, listener);
 	}
 		break;
 	case EMBEDDED: {
@@ -155,7 +160,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 void readValueString(ContentBuffer & reader, RecordParseListener & listener) {
 	int64_t value_size = readVarint(reader);
 	reader.prepare(value_size);
-	listener.stringValue((char *)reader.content + reader.cursor,value_size);
+	listener.stringValue((char *) reader.content + reader.cursor, value_size);
 }
 
 void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
@@ -198,14 +203,15 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 	int64_t size = readVarint(reader);
 	listener.startMap(size);
 	while (size-- > 0) {
+		//Skipping because is everytime string
 		reader.prepare(1);
 		int key_size = readVarint(reader);
 		reader.prepare(key_size);
-		char * key_name = (char *)reader.content + reader.cursor;
+		char * key_name = (char *) reader.content + reader.cursor;
+		listener.mapKey(key_name, key_size);
 		long position = readFlat32Integer(reader);
 		reader.prepare(1);
 		OType type = (OType) reader.content[reader.cursor];
-		listener.mapKey(key_name,key_size);
 		int temp = reader.prepared;
 		reader.force_cursor(position);
 		readSimpleValue(reader, type, listener);
@@ -214,10 +220,24 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 	listener.endMap();
 }
 
+void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener) {
+	int64_t size = readVarint(reader);
+	listener.startMap(size);
+	while (size-- > 0) {
+		//Skipping because is everytime string
+		reader.prepare(1);
+		int key_size = readVarint(reader);
+		reader.prepare(key_size);
+		char * key_name = (char *) reader.content + reader.cursor;
+		listener.mapKey(key_name, key_size);
+		readValueLink(reader, listener);
+	}
+}
+
 int32_t readFlat32Integer(ContentBuffer & reader) {
 	int32_t value;
 	reader.prepare(4);
-	memcpy(&value,reader.content+reader.cursor,4);
+	memcpy(&value, reader.content + reader.cursor, 4);
 	value = be32toh(value);
 	return value;
 }

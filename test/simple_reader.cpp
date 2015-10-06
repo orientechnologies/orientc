@@ -82,7 +82,7 @@ void test_simple_reader_all() {
 		assert(listener.linkList.size() == 3);
 		assert(listener.linkSet.size() == 3);
 		//TODO: implement linkmap
-//		assert(listener.linkMap.size() == 2);
+		assert(listener.linkMap.size() == 2);
 		assert(listener.embeddedList.size() == 2);
 		assert(listener.embeddedSet.size() == 2);
 		assert(listener.embeddedMap.size() == 2);

@@ -19,7 +19,7 @@ public:
 	ContentBuffer header;
 	ContentBuffer data;
 	bool writeValueType;
-	bool writeMapType;
+	bool isEmbeddedMap;
 	OType current;
 	std::list<std::pair<int, int> > pointers;
 	void writeRecordVersion();
@@ -31,7 +31,7 @@ public:
 };
 
 DocumentWriter::DocumentWriter() :
-		writeValueType(false), writeMapType(false), current(ANY) {
+		writeValueType(false), isEmbeddedMap(false), current(ANY) {
 
 }
 
@@ -45,7 +45,7 @@ void DocumentWriter::writeTypeIfNeeded(OType type) {
 		data.prepare(1);
 		data.content[data.cursor] = type;
 	}
-	if (writeMapType) {
+	if (isEmbeddedMap) {
 		data.prepare(1);
 		data.content[data.cursor] = type;
 	}
@@ -137,15 +137,23 @@ void RecordWriter::startField(const char *name, OType type) {
 void RecordWriter::startMap(int size) {
 	DocumentWriter *front = writer->nested.front();
 	writeVarint(front->data, size);
-	writer->nested.push_front(new DocumentWriter());
-	writer->nested.front()->writeMapType = true;
+	if (front->current == EMBEDDEDMAP) {
+		writer->nested.push_front(new DocumentWriter());
+		writer->nested.front()->isEmbeddedMap = true;
+	}
 }
 
 void RecordWriter::mapKey(const char * mapKey) {
 	DocumentWriter *front = writer->nested.front();
-	front->header.prepare(1);
-	front->header.content[front->header.cursor] = STRING;
-	front->startField(mapKey, ANY);
+	if (front->isEmbeddedMap) {
+		front->header.prepare(1);
+		front->header.content[front->header.cursor] = STRING;
+		front->startField(mapKey, ANY);
+	} else {
+		front->data.prepare(1);
+		front->data.content[front->data.cursor] = STRING;
+		writeString(front->data, mapKey);
+	}
 }
 
 void RecordWriter::stringValue(const char * value) {
@@ -203,8 +211,8 @@ void RecordWriter::floatValue(float value) {
 	DocumentWriter *front = writer->nested.front();
 	front->writeTypeIfNeeded(FLOAT);
 	int32_t i_value;
-	memcpy(&i_value,&value,4);
-	writeFlat32Integer(front->data,i_value);
+	memcpy(&i_value, &value, 4);
+	writeFlat32Integer(front->data, i_value);
 }
 
 void RecordWriter::doubleValue(double value) {
@@ -214,7 +222,7 @@ void RecordWriter::doubleValue(double value) {
 	int64_t i_val;
 	memcpy(&i_val, &value, 8);
 	i_val = htobe64(i_val);
-	memcpy(front->data.content + front->data.cursor,&i_val, 8);
+	memcpy(front->data.content + front->data.cursor, &i_val, 8);
 }
 
 void RecordWriter::binaryValue(const char * value, int size) {
@@ -248,14 +256,16 @@ void RecordWriter::endField(const char *name, OType type) {
 
 void RecordWriter::endMap() {
 	DocumentWriter *front = writer->nested.front();
-	int size;
-	char * content = front->writtenContent(&size);
-	writer->nested.pop_front();
-	delete front;
-	DocumentWriter *front1 = writer->nested.front();
-	front1->data.prepare(size);
-	memcpy(front1->data.content + front1->data.cursor, content, size);
-	delete[] content;
+	if (front->isEmbeddedMap) {
+		writer->nested.pop_front();
+		DocumentWriter *front1 = writer->nested.front();
+		int size;
+		char * content = front->writtenContent(&size);
+		delete front;
+		front1->data.prepare(size);
+		memcpy(front1->data.content + front1->data.cursor, content, size);
+		delete[] content;
+	}
 }
 
 void RecordWriter::endDocument() {

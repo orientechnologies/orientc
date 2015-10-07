@@ -73,6 +73,8 @@ void test_simple_reader_all() {
 		assert(listener.short_value == 2);
 		assert(listener.long_value == 32);
 		assert(listener.binary_size == 4);
+		assert(listener.date_value == 1341273600000);
+		assert(listener.date_time_value == 1446808223000);
 		assert(listener.link_value.cluster == 10 && listener.link_value.position == 20);
 		assert(listener.binary_value[0] == 'a' && listener.binary_value[1] == 'd' && listener.binary_value[2] == 'a' && listener.binary_value[3] == 'd');
 		//Checking that the class name if the one of the embedded document.

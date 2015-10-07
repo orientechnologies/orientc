@@ -69,7 +69,6 @@ void test_simple_reader_all() {
 		assert(listener.balanced_count == 0);
 		assert(listener.integer_value == 21);
 		assert(listener.float_value == (float )10.2);
-		std::cout << listener.double_value;
 		assert(listener.double_value == (double )11.2);
 		assert(listener.short_value == 2);
 		assert(listener.long_value == 32);
@@ -92,6 +91,21 @@ void test_simple_reader_all() {
 	}
 }
 
+void test_reader_nested() {
+	try {
+		RecordParser parser("ORecordSerializerBinary");
+		char content[10000];
+		std::fstream document_data("data/deep_embedded.data");
+		document_data.read(content, 10000);
+		SimpleTrackerListener listener;
+		parser.parse((unsigned char *) content, 10000, listener);
+		assert(listener.startDocumentCount == 6);
+		assert(listener.field_count == 9);
+	} catch (...) {
+		assert(false);
+	}
+}
+
 void test_fail_wrong_format() {
 	try {
 		RecordParser parser("sdfsdfs");
@@ -106,6 +120,7 @@ int main() {
 	test_simple_reader_many();
 	test_simple_reader_big();
 	test_simple_reader_all();
+	test_reader_nested();
 	return 0;
 }
 

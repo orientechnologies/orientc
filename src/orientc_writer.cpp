@@ -23,13 +23,14 @@ public:
 	bool writeValueType;
 	bool isEmbeddedMap;
 	OType current;
-	std::list<std::pair<int, int> > pointers;
+	std::list<std::pair<int32_t, int32_t> > pointers;
+	std::list<std::pair<int32_t, int32_t> > dataPointers;
 	void writeRecordVersion();
 	void writeClass(const char * name);
 	void startField(const char *name, OType type);
 	void endField(const char *name, OType type);
 	void writeTypeIfNeeded(OType type);
-	unsigned char * writtenContent(int *size);
+	unsigned char * writtenContent(int *size, DocumentWriter * parent, int contentOffset);
 };
 
 DocumentWriter::DocumentWriter() :
@@ -75,20 +76,35 @@ void DocumentWriter::startField(const char *name, OType type) {
 void DocumentWriter::endField(const char *name, OType type) {
 }
 
-unsigned char * DocumentWriter::writtenContent(int * size) {
+unsigned char * DocumentWriter::writtenContent(int * size, DocumentWriter * parent, int contentOffset) {
 	writeVarint(header, 0);
 	int headerSize = header.prepared;
 	int dataSize = data.prepared;
 	int wholeSize = headerSize + dataSize;
-	std::list<std::pair<int, int> >::iterator i;
+	std::list<std::pair<int32_t, int32_t> >::iterator i;
 	for (i = pointers.begin(); i != pointers.end(); ++i) {
-		std::pair<int, int> & pair = *i;
-		header.force_cursor(pair.first);
-		writeFlat32Integer(header, pair.second + headerSize);
+		std::pair<int32_t, int32_t> & pair = *i;
+		if (parent != 0) {
+			parent->dataPointers.push_back(std::pair<int32_t, int32_t>(pair.first + contentOffset, pair.second + headerSize + contentOffset));
+		} else {
+			header.force_cursor(pair.first);
+			writeFlat32Integer(header, pair.second + headerSize);
+		}
 	}
+	for (i = dataPointers.begin(); i != dataPointers.end(); ++i) {
+		std::pair<int32_t, int32_t> & pair = *i;
+		if (parent != 0) {
+			parent->dataPointers.push_back(std::pair<int32_t, int32_t>(pair.first + headerSize + contentOffset, pair.second + headerSize + contentOffset));
+		} else {
+			data.force_cursor(pair.first);
+			writeFlat32Integer(data, pair.second + headerSize);
+		}
+	}
+
 	unsigned char * all = new unsigned char[wholeSize];
 	memcpy(all, header.content, headerSize);
 	memcpy(all + headerSize, data.content, dataSize);
+
 	*size = wholeSize;
 	return all;
 }
@@ -257,11 +273,11 @@ void RecordWriter::endField(const char *name, OType type) {
 	DocumentWriter *front = writer->nested.front();
 	front->endField(name, type);
 	if (type == EMBEDDED) {
-		int size;
-		unsigned char * content = front->writtenContent(&size);
 		writer->nested.pop_front();
-		delete front;
 		DocumentWriter *front1 = writer->nested.front();
+		int size;
+		unsigned char * content = front->writtenContent(&size, front1, front1->data.prepared);
+		delete front;
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
 	}
@@ -273,7 +289,7 @@ void RecordWriter::endMap() {
 		writer->nested.pop_front();
 		DocumentWriter *front1 = writer->nested.front();
 		int size;
-		unsigned char * content = front->writtenContent(&size);
+		unsigned char * content = front->writtenContent(&size, front1, front1->data.prepared);
 		delete front;
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
@@ -286,14 +302,16 @@ void RecordWriter::endDocument() {
 }
 
 const unsigned char * RecordWriter::writtenContent(int * size) {
-	return writer->nested.front()->writtenContent(size);
+	return writer->nested.front()->writtenContent(size, 0, 0);
 }
 
 void writeString(ContentBuffer & buffer, const char *string) {
 	int size = strlen(string);
 	writeVarint(buffer, size);
-	buffer.prepare(size);
-	memcpy(buffer.content + buffer.cursor, string, size);
+	if (size > 0) {
+		buffer.prepare(size);
+		memcpy(buffer.content + buffer.cursor, string, size);
+	}
 }
 
 void writeFlat32Integer(ContentBuffer & buffer, int32_t value) {

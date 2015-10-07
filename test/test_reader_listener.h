@@ -12,6 +12,7 @@ class TrackerListener: public RecordParseListener {
 public:
 	virtual void startDocument(const char * name, size_t class_name_length) {
 		this->class_name = strndup(name,class_name_length);
+		startDocumentCount++;
 	}
 	virtual void endDocument() {
 
@@ -98,8 +99,9 @@ public:
 	int collectionSize;
 	int mapSize;
 	int mapCount;
+	int startDocumentCount;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);
@@ -114,6 +116,7 @@ public:
 	virtual void startDocument(const char * name, size_t class_name_length) {
 		if(this->class_name != 0) free(this->class_name);
 		this->class_name = strndup(name,class_name_length);
+		startDocumentCount++;
 	}
 	virtual void endDocument() {
 
@@ -217,6 +220,7 @@ public:
 	int collectionSize;
 	int mapSize;
 	int mapCount;
+	int startDocumentCount;
 	OType type;
 	std::list<struct Link> linkList;
 	std::list<struct Link> linkSet;
@@ -226,8 +230,9 @@ public:
 	std::set<std::string> embeddedSet;
 	std::map<std::string,std::string> embeddedMap;
 	std::string key;
+
 	SimpleTrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) {
 	}
 	~SimpleTrackerListener() {
 		free((void *)class_name);

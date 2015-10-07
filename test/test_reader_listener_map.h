@@ -42,9 +42,9 @@ public:
 		count = value.cluster;
 	}
 
-	virtual void startCollection(int size) {
+	virtual void startCollection(int size,OType type) {
 	}
-	virtual void startMap(int size) {
+	virtual void startMap(int size,OType type) {
 		mapSize =size;
 	}
 	virtual void mapKey(const char *key ,size_t key_length) {
@@ -53,8 +53,8 @@ public:
 		if(std::string(key,key_lenght) == exp)
 		count++;
 	}
-	virtual void endMap() {}
-	virtual void endCollection() {}
+	virtual void endMap(OType type) {}
+	virtual void endCollection(OType type) {}
 
 	int mapSize;
 	int count;

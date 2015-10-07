@@ -10,10 +10,10 @@ namespace Orient {
 
 void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & listener);
 inline void readValueString(ContentBuffer & reader, RecordParseListener & listener);
-void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener);
-void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener);
-void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener);
-void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener);
+void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener, OType collType);
+void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener, OType collType);
+void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener, OType collType);
+void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener, OType collType);
 inline void readValueLink(ContentBuffer & reader, RecordParseListener & listener);
 void readDocument(ContentBuffer &reader, RecordParseListener & listener);
 void readValueRidbag(ContentBuffer &reader, RecordParseListener & listener);
@@ -42,6 +42,7 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	} else
 		listener.startDocument("", 0);
 	int64_t size = 0;
+	int32_t lastCursor = 0;
 	while ((size = readVarint(reader)) != 0) {
 		if (size > 0) {
 			reader.prepare(size);
@@ -53,12 +54,15 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 			int temp = reader.prepared;
 			reader.force_cursor(position);
 			readSimpleValue(reader, type, listener);
+			lastCursor = reader.prepared;
 			reader.force_cursor(temp);
 			listener.endField(field_name, size);
 		} else {
 			throw new parse_exception("property id not supported by network serialization");
 		}
 	}
+	if (lastCursor > reader.prepared)
+		reader.force_cursor(lastCursor);
 }
 
 void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & listener) {
@@ -127,7 +131,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		break;
 	case LINKSET:
 	case LINKLIST: {
-		readValueLinkCollection(reader, listener);
+		readValueLinkCollection(reader, listener, type);
 	}
 		break;
 	case BINARY: {
@@ -138,15 +142,15 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		break;
 	case EMBEDDEDLIST:
 	case EMBEDDEDSET: {
-		readValueEmbeddedCollection(reader, listener);
+		readValueEmbeddedCollection(reader, listener, type);
 	}
 		break;
 	case EMBEDDEDMAP: {
-		readValueEmbeddedMap(reader, listener);
+		readValueEmbeddedMap(reader, listener, type);
 	}
 		break;
 	case LINKMAP: {
-		readValueLinkMap(reader, listener);
+		readValueLinkMap(reader, listener, type);
 	}
 		break;
 	case EMBEDDED: {
@@ -176,19 +180,19 @@ void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
 	listener.linkValue(link);
 }
 
-void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener) {
+void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener, OType type) {
 	int size = readVarint(reader);
-	listener.startCollection(size);
+	listener.startCollection(size, type);
 	while (size-- > 0) {
 		//TODO: handle null
 		readValueLink(reader, listener);
 	}
-	listener.endCollection();
+	listener.endCollection(type);
 
 }
-void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener) {
+void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & listener, OType collType) {
 	int size = readVarint(reader);
-	listener.startCollection(size);
+	listener.startCollection(size, collType);
 	reader.prepare(1);
 	OType type = (OType) reader.content[reader.cursor];
 	if (ANY == type) {
@@ -201,13 +205,14 @@ void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & l
 				readSimpleValue(reader, entryType, listener);
 		}
 	}
-	listener.endCollection();
+	listener.endCollection(collType);
 	//For now else is impossible
 }
 
-void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener) {
+void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener, OType mapType) {
 	int64_t size = readVarint(reader);
-	listener.startMap(size);
+	listener.startMap(size, mapType);
+	int32_t lastCursor = 0;
 	while (size-- > 0) {
 		//Skipping because is everytime string
 		reader.prepare(1);
@@ -221,14 +226,17 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 		int temp = reader.prepared;
 		reader.force_cursor(position);
 		readSimpleValue(reader, type, listener);
+		lastCursor = reader.prepared;
 		reader.force_cursor(temp);
 	}
-	listener.endMap();
+	listener.endMap(mapType);
+	if (lastCursor > reader.prepared)
+		reader.force_cursor(lastCursor);
 }
 
-void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener) {
+void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener, OType mapType) {
 	int64_t size = readVarint(reader);
-	listener.startMap(size);
+	listener.startMap(size, mapType);
 	while (size-- > 0) {
 		//Skipping because is everytime string
 		reader.prepare(1);
@@ -238,6 +246,7 @@ void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener) {
 		listener.mapKey(key_name, key_size);
 		readValueLink(reader, listener);
 	}
+	listener.endMap(mapType);
 }
 
 void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
@@ -245,14 +254,14 @@ void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
 	unsigned char c = reader.content[reader.cursor];
 	if ((c & 1) == 1) {
 		int32_t size = readFlat32Integer(reader);
-		listener.startCollection(size);
+		listener.startCollection(size, LINKBAG);
 		while (size-- > 0) {
 			struct Link link;
 			link.cluster = readFlat16Integer(reader);
 			link.position = readFlat64Integer(reader);
 			listener.linkValue(link);
 		}
-		listener.endCollection();
+		listener.endCollection(LINKBAG);
 	} else {
 
 	}

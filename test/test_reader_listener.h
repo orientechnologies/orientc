@@ -65,10 +65,10 @@ public:
 		link_value.position=value.position;
 	}
 
-	virtual void startCollection(int size) {
+	virtual void startCollection(int size,OType type) {
 		collectionSize = size;
 	}
-	virtual void startMap(int size) {
+	virtual void startMap(int size,OType type) {
 		mapSize = size;
 	}
 	virtual void mapKey(const char *key ,size_t key_length) {
@@ -77,8 +77,8 @@ public:
 		assert(std::string(key,key_length) == ss.str());
 		mapCount++;
 	}
-	virtual void endMap() {}
-	virtual void endCollection() {}
+	virtual void endMap(OType type) {}
+	virtual void endCollection(OType type) {}
 
 	int field_count;
 	int balanced_count;
@@ -124,17 +124,18 @@ public:
 	virtual void startField(const char * name,size_t name_length, OType type) {
 		this->field_count++;
 		this->balanced_count++;
-		this->type = type;
+		if(type != EMBEDDEDLIST && type != EMBEDDEDMAP && type != EMBEDDEDSET && type != LINKSET && type != LINKMAP && type != LINKLIST && type != LINKBAG)
+			this->types.push_front(type);
 	}
 	virtual void endField(const char * name,size_t name_length) {
 		this->balanced_count--;
 	}
 	virtual void stringValue( const char * value, size_t value_lenght) {
-		if(type == EMBEDDEDLIST) {
+		if(types.front() == EMBEDDEDLIST) {
 			embeddedList.push_back(std::string(value,value_lenght));
-		} else if( type == EMBEDDEDSET) {
+		} else if( types.front() == EMBEDDEDSET) {
 			embeddedSet.insert(std::string(value,value_lenght));
-		} else if( type == EMBEDDEDMAP) {
+		} else if( types.front() == EMBEDDEDMAP) {
 			embeddedMap[key] == std::string(value,value_lenght);
 		}
 		if(a_string_value != 0) free(a_string_value);
@@ -174,32 +175,34 @@ public:
 		date_time_value = value;
 	}
 	virtual void linkValue(struct Link &value) {
-		if(type == LINK) {
+		if(types.front() == LINK) {
 			link_value.cluster =value.cluster;
 			link_value.position=value.position;
-		} else if(type == LINKLIST) {
+		} else if(types.front() == LINKLIST) {
 			linkList.push_back(value);
-		} else if(type == LINKSET) {
+		} else if(types.front() == LINKSET) {
 			linkSet.push_back(value);
-		} else if(type == LINKMAP) {
+		} else if(types.front() == LINKMAP) {
 			linkMap[key] = value;
-		} else if(type == LINKBAG) {
+		} else if(types.front() == LINKBAG) {
 			embeddedRidbag.push_back(value);
 		}
 	}
 
-	virtual void startCollection(int size) {
+	virtual void startCollection(int size,OType type) {
 		collectionSize = size;
+		this->types.push_front(type);
 	}
-	virtual void startMap(int size) {
+	virtual void startMap(int size,OType type) {
 		mapSize = size;
+		this->types.push_front(type);
 	}
 	virtual void mapKey(const char *key ,size_t key_length) {
 		mapCount++;
 		this->key = std::string(key,key_length);
 	}
-	virtual void endMap() {}
-	virtual void endCollection() {}
+	virtual void endMap(OType type) {}
+	virtual void endCollection(OType type) {}
 
 	int field_count;
 	int balanced_count;
@@ -221,7 +224,7 @@ public:
 	int mapSize;
 	int mapCount;
 	int startDocumentCount;
-	OType type;
+	std::list<OType> types;
 	std::list<struct Link> linkList;
 	std::list<struct Link> linkSet;
 	std::list<struct Link> embeddedRidbag;

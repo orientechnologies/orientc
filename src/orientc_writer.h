@@ -18,8 +18,8 @@ class RecordWriter {
 public:
 	RecordWriter(std::string format);
 	void startDocument(const char * className);
-	void startCollection(int size);
-	void startMap(int size);
+	void startCollection(int size,OType type);
+	void startMap(int size,OType type);
 	void mapKey(const char * mapKey);
 	void startField(const char * name,OType type);
 	void endField(const char * name,OType type);
@@ -35,8 +35,8 @@ public:
 	void dateValue(long long value);
 	void dateTimeValue(long long value);
 	void linkValue(struct Link & value);
-	void endMap();
-	void endCollection();
+	void endMap(OType type);
+	void endCollection(OType type);
 	void endDocument();
 	const unsigned char * writtenContent(int *size);
 	~RecordWriter();

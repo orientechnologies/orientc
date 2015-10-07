@@ -141,7 +141,7 @@ void test_embedded_collection_read_write() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 		writer.startField("testCollection", EMBEDDEDLIST);
-		writer.startCollection(12);
+		writer.startCollection(12, EMBEDDEDLIST);
 		writer.stringValue("test");
 		writer.intValue(10);
 		writer.longValue(30);
@@ -157,7 +157,7 @@ void test_embedded_collection_read_write() {
 		l.cluster = 10;
 		l.position = 20;
 		writer.linkValue(l);
-		writer.endCollection();
+		writer.endCollection(EMBEDDEDLIST);
 		writer.endField("testCollection", EMBEDDEDLIST);
 		writer.endDocument();
 		int size;
@@ -201,7 +201,7 @@ void test_link_collection_read_write() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 		writer.startField("testCollection", LINKLIST);
-		writer.startCollection(10);
+		writer.startCollection(10, LINKLIST);
 		struct Link lnk;
 		lnk.cluster = 0;
 		lnk.position = 1;
@@ -209,7 +209,7 @@ void test_link_collection_read_write() {
 			writer.linkValue(lnk);
 			lnk.cluster = lnk.position;
 		}
-		writer.endCollection();
+		writer.endCollection(LINKLIST);
 		writer.endField("testCollection", LINKLIST);
 		writer.endDocument();
 		int size;
@@ -236,7 +236,7 @@ void test_embedded_map_read_write() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 		writer.startField("testEmbeddedMap", EMBEDDEDMAP);
-		writer.startMap(12);
+		writer.startMap(12, EMBEDDEDMAP);
 		writer.mapKey("key0");
 		writer.stringValue("test");
 		writer.mapKey("key1");
@@ -265,7 +265,7 @@ void test_embedded_map_read_write() {
 		l.position = 20;
 		writer.linkValue(l);
 
-		writer.endMap();
+		writer.endMap(EMBEDDEDMAP);
 		writer.endField("testEmbeddedMap", EMBEDDEDMAP);
 		writer.endDocument();
 		int size;
@@ -292,7 +292,7 @@ void test_link_map_read_write() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 		writer.startField("testLinkMap", LINKMAP);
-		writer.startMap(2);
+		writer.startMap(2, LINKMAP);
 
 		writer.mapKey("key0");
 		struct Link link;
@@ -305,7 +305,7 @@ void test_link_map_read_write() {
 		link.position = 22;
 		writer.linkValue(link);
 
-		writer.endMap();
+		writer.endMap(LINKMAP);
 		writer.endField("testLinkMap", LINKMAP);
 		writer.endDocument();
 		int size;
@@ -333,7 +333,7 @@ void test_link_bag_read_write() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 		writer.startField("testLinkBag", LINKBAG);
-		writer.startCollection(2);
+		writer.startCollection(2, LINKBAG);
 
 		struct Link link;
 		link.cluster = 10;
@@ -344,7 +344,7 @@ void test_link_bag_read_write() {
 		link.position = 22;
 		writer.linkValue(link);
 
-		writer.endCollection();
+		writer.endCollection(LINKBAG);
 		writer.endField("testLinkBag", LINKBAG);
 		writer.endDocument();
 		int size;
@@ -409,6 +409,55 @@ void test_embedded_deep_read_write() {
 	}
 }
 
+void test_embedded_deep_collections_read_write() {
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("embed", EMBEDDED);
+		writer.startDocument("");
+		writer.startField("field", EMBEDDEDLIST);
+
+		writer.startCollection(2, EMBEDDEDLIST);
+		writer.stringValue("string");
+		writer.startMap(3, EMBEDDEDMAP);
+		writer.mapKey("key0");
+		writer.stringValue("value");
+		writer.mapKey("key1");
+		writer.startDocument("");
+		writer.startField("bla", STRING);
+		writer.intValue(10);
+		writer.endDocument();
+		writer.mapKey("key2");
+		writer.stringValue("string");
+		writer.endMap(EMBEDDEDMAP);
+		writer.endCollection(EMBEDDEDLIST);
+		writer.endField("field", EMBEDDEDLIST);
+
+		writer.endDocument();
+		writer.endField("embed", EMBEDDED);
+		writer.endDocument();
+
+		int size;
+
+		const unsigned char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		TrackerListener listener;
+		reader.parse(content, size, listener);
+		delete[] content;
+
+		assert(listener.collectionSize == 2);
+		assert(listener.mapCount == 3);
+		assert(listener.startDocumentCount == 3);
+		assert(listener.field_count == 3);
+
+	} catch (parse_exception & oh) {
+		std::cout << "oh" << oh.what();
+		std::cout.flush();
+		assert(false);
+	}
+}
+
 int main() {
 	test_simple_write_read();
 	test_all_simple_write_read();
@@ -418,5 +467,6 @@ int main() {
 	test_link_map_read_write();
 	test_link_bag_read_write();
 	test_embedded_deep_read_write();
+	test_embedded_deep_collections_read_write();
 	return 0;
 }

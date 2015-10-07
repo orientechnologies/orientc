@@ -42,13 +42,13 @@ public:
 			count++;
 	}
 
-	virtual void startCollection(int size) {
+	virtual void startCollection(int size,OType type) {
 		collectionSize =size;
 	}
-	virtual void startMap(int size) {}
+	virtual void startMap(int size,OType type) {}
 	virtual void mapKey(const char *name ,size_t key_length) {}
-	virtual void endMap() {}
-	virtual void endCollection() {}
+	virtual void endMap(OType type) {}
+	virtual void endCollection(OType type) {}
 
 	int collectionSize;
 	int count;

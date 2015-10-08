@@ -116,16 +116,29 @@ void test_reader_mix_nested() {
 		document_data.read(content, 10000);
 		SimpleTrackerListener listener;
 		parser.parse((unsigned char *) content, 10000, listener);
-		std::cout<<listener.startDocumentCount ;
-		std::cout<<listener.field_count;
-		std::cout<<listener.a_string_value;
-		std::cout<<listener.embeddedList.size();
 		assert(listener.startDocumentCount == 7);
 		//it keep only the strings of all the embedded lists.
 		assert(listener.embeddedList.size() == 4);
 		assert(std::string(listener.a_string_value) == std::string("text_last"));
 		assert(listener.balanced_count == 0);
 		assert(listener.field_count == 12);
+	} catch (...) {
+		assert(false);
+	}
+}
+
+void test_reader_ridbag_tree_nested() {
+	try {
+		RecordParser parser("ORecordSerializerBinary");
+		char content[10000];
+		std::fstream document_data("data/ridbag_tree.data");
+		document_data.read(content, 10000);
+		SimpleTrackerListener listener;
+		parser.parse((unsigned char *) content, 10000, listener);
+		assert(listener.startDocumentCount == 1);
+		assert(listener.balanced_count == 0);
+		assert(listener.field_count == 1);
+		assert(listener.ridbagKey);
 	} catch (...) {
 		assert(false);
 	}
@@ -147,6 +160,7 @@ int main() {
 	test_simple_reader_all();
 	test_reader_nested();
 	test_reader_mix_nested();
+	test_reader_ridbag_tree_nested();
 	return 0;
 }
 

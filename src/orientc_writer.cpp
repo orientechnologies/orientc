@@ -265,6 +265,18 @@ void RecordWriter::linkValue(struct Link &link) {
 	}
 }
 
+void RecordWriter::ridBagTreeKey(long long fileId, long long pageIndex, long pageOffset) {
+	DocumentWriter *front = writer->nested.front();
+	front->writeTypeIfNeeded(LINKBAG);
+	front->data.prepare(1);
+	front->data.content[front->data.cursor] = 0;
+	writeFlat64Integer(front->data, fileId);
+	writeFlat64Integer(front->data, pageIndex);
+	writeFlat32Integer(front->data, pageOffset);
+	writeFlat32Integer(front->data, 0);
+	writeFlat32Integer(front->data, 0);
+}
+
 void RecordWriter::startField(const char* name) {
 	DocumentWriter* front = writer->nested.front();
 	front->startField(name);
@@ -301,6 +313,7 @@ void RecordWriter::endDocument() {
 		delete front;
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
+		delete [] content;
 	}
 }
 

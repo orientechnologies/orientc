@@ -458,6 +458,34 @@ void test_embedded_deep_collections_read_write() {
 	}
 }
 
+void test_link_bag_tree_read_write() {
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("testLinkBag");
+		writer.ridBagTreeKey(20, 20, 20);
+		writer.endField("testLinkBag");
+		writer.endDocument();
+		int size;
+
+		const unsigned char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		TrackerListener listener;
+		reader.parse(content, size, listener);
+		delete[] content;
+
+		assert(listener.fileId == 20);
+		assert(listener.pageIndex == 20);
+		assert(listener.pageOffset == 20);
+
+	} catch (parse_exception & oh) {
+		std::cout << "oh" << oh.what();
+		std::cout.flush();
+		assert(false);
+	}
+}
+
 int main() {
 	test_simple_write_read();
 	test_all_simple_write_read();
@@ -468,5 +496,6 @@ int main() {
 	test_link_bag_read_write();
 	test_embedded_deep_read_write();
 	test_embedded_deep_collections_read_write();
+	test_link_bag_tree_read_write();
 	return 0;
 }

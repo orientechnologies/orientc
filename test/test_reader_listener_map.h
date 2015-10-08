@@ -55,7 +55,7 @@ public:
 	}
 	virtual void endMap(OType type) {}
 	virtual void endCollection(OType type) {}
-
+	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset){}
 	int mapSize;
 	int count;
 	MapListener(): mapSize(0), count(0)

@@ -11,6 +11,7 @@ using namespace Orient;
 class TrackerListener: public RecordParseListener {
 public:
 	virtual void startDocument(const char * name, size_t class_name_length) {
+		if(this->class_name != 0) free(this->class_name);
 		this->class_name = strndup(name,class_name_length);
 		startDocumentCount++;
 	}
@@ -79,6 +80,11 @@ public:
 	}
 	virtual void endMap(OType type) {}
 	virtual void endCollection(OType type) {}
+	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset) {
+		this->fileId =fileId;
+		this->pageIndex= pageIndex;
+		this->pageOffset = pageOffset;
+	}
 
 	int field_count;
 	int balanced_count;
@@ -100,8 +106,11 @@ public:
 	int mapSize;
 	int mapCount;
 	int startDocumentCount;
+	long long fileId;
+	long long pageIndex;
+	long pageOffset;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);
@@ -125,7 +134,7 @@ public:
 		this->field_count++;
 		this->balanced_count++;
 		if(type != EMBEDDEDLIST && type != EMBEDDEDMAP && type != EMBEDDEDSET && type != LINKSET && type != LINKMAP && type != LINKLIST && type != LINKBAG)
-			this->types.push_front(type);
+		this->types.push_front(type);
 	}
 	virtual void endField(const char * name,size_t name_length) {
 		this->balanced_count--;
@@ -203,6 +212,9 @@ public:
 	}
 	virtual void endMap(OType type) {}
 	virtual void endCollection(OType type) {}
+	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset) {
+		ridbagKey= true;
+	}
 
 	int field_count;
 	int balanced_count;
@@ -233,9 +245,9 @@ public:
 	std::set<std::string> embeddedSet;
 	std::map<std::string,std::string> embeddedMap;
 	std::string key;
-
+	bool ridbagKey;
 	SimpleTrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) ,ridbagKey(false) {
 	}
 	~SimpleTrackerListener() {
 		free((void *)class_name);

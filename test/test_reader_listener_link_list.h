@@ -49,6 +49,7 @@ public:
 	virtual void mapKey(const char *name ,size_t key_length) {}
 	virtual void endMap(OType type) {}
 	virtual void endCollection(OType type) {}
+	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset){}
 
 	int collectionSize;
 	int count;

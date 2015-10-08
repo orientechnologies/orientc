@@ -252,6 +252,12 @@ void readValueLinkMap(ContentBuffer & reader, RecordParseListener & listener, OT
 void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
 	reader.prepare(1);
 	unsigned char c = reader.content[reader.cursor];
+	if ((c & 2) == 2) {
+		//UUID
+		//Skipping UUID
+		readFlat64Integer(reader);
+		readFlat64Integer(reader);
+	}
 	if ((c & 1) == 1) {
 		int32_t size = readFlat32Integer(reader);
 		listener.startCollection(size, LINKBAG);
@@ -263,7 +269,14 @@ void readValueRidbag(ContentBuffer & reader, RecordParseListener & listener) {
 		}
 		listener.endCollection(LINKBAG);
 	} else {
-
+		long long fileId = readFlat64Integer(reader);
+		long long pageIndex = readFlat64Integer(reader);
+		long int pageOffset = readFlat32Integer(reader);
+		// old data not needed anymore
+		readFlat32Integer(reader);
+		//changes client side should be everytime 0
+		readFlat32Integer(reader);
+		listener.ridBagTreeKey(fileId, pageIndex, pageOffset);
 	}
 
 }

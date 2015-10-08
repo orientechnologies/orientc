@@ -15,14 +15,14 @@ void test_simple_write_read() {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
 
-		writer.startField("test", STRING);
+		writer.startField("test");
 		writer.stringValue("test");
 
-		writer.endField("test", STRING);
-		writer.startField("number", INTEGER);
+		writer.endField("test");
+		writer.startField("number");
 		writer.intValue(10);
 
-		writer.endField("number", INTEGER);
+		writer.endField("number");
 
 		int size;
 
@@ -50,56 +50,56 @@ void test_all_simple_write_read() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("test", STRING);
+		writer.startField("test");
 		writer.stringValue("test");
-		writer.endField("test", STRING);
+		writer.endField("test");
 
-		writer.startField("number", INTEGER);
+		writer.startField("number");
 		writer.intValue(10);
-		writer.endField("number", INTEGER);
+		writer.endField("number");
 
-		writer.startField("long", LONG);
+		writer.startField("long");
 		writer.longValue(30);
-		writer.endField("long", LONG);
+		writer.endField("long");
 
-		writer.startField("bool", BOOLEAN);
+		writer.startField("bool");
 		writer.booleanValue(true);
-		writer.endField("bool", BOOLEAN);
+		writer.endField("bool");
 
-		writer.startField("short", SHORT);
+		writer.startField("short");
 		writer.shortValue(20);
-		writer.endField("short", SHORT);
+		writer.endField("short");
 
-		writer.startField("byte", BYTE);
+		writer.startField("byte");
 		writer.byteValue(40);
-		writer.endField("byte", BYTE);
+		writer.endField("byte");
 
-		writer.startField("float", FLOAT);
+		writer.startField("float");
 		writer.floatValue(50.04f);
-		writer.endField("float", FLOAT);
+		writer.endField("float");
 
-		writer.startField("double", DOUBLE);
+		writer.startField("double");
 		writer.doubleValue(60.043);
-		writer.endField("double", DOUBLE);
+		writer.endField("double");
 
-		writer.startField("binary", BINARY);
+		writer.startField("binary");
 		writer.binaryValue("bla", 3);
-		writer.endField("binary", BINARY);
+		writer.endField("binary");
 
-		writer.startField("date", DATE);
+		writer.startField("date");
 		writer.dateValue(2073600000);
-		writer.endField("date", DATE);
+		writer.endField("date");
 
-		writer.startField("datetime", DATETIME);
+		writer.startField("datetime");
 		writer.dateTimeValue(2073600100);
-		writer.endField("datetime", DATETIME);
+		writer.endField("datetime");
 
-		writer.startField("link", LINK);
+		writer.startField("link");
 		struct Link l;
 		l.cluster = 10;
 		l.position = 20;
 		writer.linkValue(l);
-		writer.endField("link", LINK);
+		writer.endField("link");
 
 		int size;
 
@@ -140,7 +140,7 @@ void test_embedded_collection_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("testCollection", EMBEDDEDLIST);
+		writer.startField("testCollection");
 		writer.startCollection(12, EMBEDDEDLIST);
 		writer.stringValue("test");
 		writer.intValue(10);
@@ -158,7 +158,7 @@ void test_embedded_collection_read_write() {
 		l.position = 20;
 		writer.linkValue(l);
 		writer.endCollection(EMBEDDEDLIST);
-		writer.endField("testCollection", EMBEDDEDLIST);
+		writer.endField("testCollection");
 		writer.endDocument();
 		int size;
 
@@ -200,7 +200,7 @@ void test_link_collection_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("testCollection", LINKLIST);
+		writer.startField("testCollection");
 		writer.startCollection(10, LINKLIST);
 		struct Link lnk;
 		lnk.cluster = 0;
@@ -210,7 +210,7 @@ void test_link_collection_read_write() {
 			lnk.cluster = lnk.position;
 		}
 		writer.endCollection(LINKLIST);
-		writer.endField("testCollection", LINKLIST);
+		writer.endField("testCollection");
 		writer.endDocument();
 		int size;
 
@@ -235,7 +235,7 @@ void test_embedded_map_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("testEmbeddedMap", EMBEDDEDMAP);
+		writer.startField("testEmbeddedMap");
 		writer.startMap(12, EMBEDDEDMAP);
 		writer.mapKey("key0");
 		writer.stringValue("test");
@@ -266,7 +266,7 @@ void test_embedded_map_read_write() {
 		writer.linkValue(l);
 
 		writer.endMap(EMBEDDEDMAP);
-		writer.endField("testEmbeddedMap", EMBEDDEDMAP);
+		writer.endField("testEmbeddedMap");
 		writer.endDocument();
 		int size;
 
@@ -291,7 +291,7 @@ void test_link_map_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("testLinkMap", LINKMAP);
+		writer.startField("testLinkMap");
 		writer.startMap(2, LINKMAP);
 
 		writer.mapKey("key0");
@@ -306,7 +306,7 @@ void test_link_map_read_write() {
 		writer.linkValue(link);
 
 		writer.endMap(LINKMAP);
-		writer.endField("testLinkMap", LINKMAP);
+		writer.endField("testLinkMap");
 		writer.endDocument();
 		int size;
 
@@ -332,7 +332,7 @@ void test_link_bag_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("testLinkBag", LINKBAG);
+		writer.startField("testLinkBag");
 		writer.startCollection(2, LINKBAG);
 
 		struct Link link;
@@ -345,7 +345,7 @@ void test_link_bag_read_write() {
 		writer.linkValue(link);
 
 		writer.endCollection(LINKBAG);
-		writer.endField("testLinkBag", LINKBAG);
+		writer.endField("testLinkBag");
 		writer.endDocument();
 		int size;
 
@@ -370,24 +370,24 @@ void test_embedded_deep_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("embed", EMBEDDED);
+		writer.startField("embed");
 		writer.startDocument("");
-		writer.startField("as", STRING);
+		writer.startField("as");
 		writer.stringValue("string");
-		writer.endField("as", STRING);
-		writer.startField("embed", EMBEDDED);
+		writer.endField("as");
+		writer.startField("embed");
 		writer.startDocument("");
-		writer.startField("embed", EMBEDDED);
+		writer.startField("embed");
 		writer.startDocument("");
-		writer.startField("field", STRING);
+		writer.startField("field");
 		writer.stringValue("string");
-		writer.endField("field", STRING);
+		writer.endField("field");
 		writer.endDocument();
-		writer.endField("embed", EMBEDDED);
+		writer.endField("embed");
 		writer.endDocument();
-		writer.endField("embed", EMBEDDED);
+		writer.endField("embed");
 		writer.endDocument();
-		writer.endField("embed", EMBEDDED);
+		writer.endField("embed");
 		writer.endDocument();
 
 		int size;
@@ -413,9 +413,9 @@ void test_embedded_deep_collections_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
-		writer.startField("embed", EMBEDDED);
+		writer.startField("embed");
 		writer.startDocument("");
-		writer.startField("field", EMBEDDEDLIST);
+		writer.startField("field");
 
 		writer.startCollection(2, EMBEDDEDLIST);
 		writer.stringValue("string");
@@ -424,17 +424,17 @@ void test_embedded_deep_collections_read_write() {
 		writer.stringValue("value");
 		writer.mapKey("key1");
 		writer.startDocument("");
-		writer.startField("bla", STRING);
+		writer.startField("bla");
 		writer.intValue(10);
 		writer.endDocument();
 		writer.mapKey("key2");
 		writer.stringValue("string");
 		writer.endMap(EMBEDDEDMAP);
 		writer.endCollection(EMBEDDEDLIST);
-		writer.endField("field", EMBEDDEDLIST);
+		writer.endField("field");
 
 		writer.endDocument();
-		writer.endField("embed", EMBEDDED);
+		writer.endField("embed");
 		writer.endDocument();
 
 		int size;

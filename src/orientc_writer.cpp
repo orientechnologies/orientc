@@ -20,23 +20,19 @@ public:
 	DocumentWriter();
 	ContentBuffer header;
 	ContentBuffer data;
-	bool writeValueType;
-	bool isEmbeddedMap;
 	std::list<OType> current;
 	std::list<std::pair<int32_t, int32_t> > pointers;
 	std::list<std::pair<int32_t, int32_t> > dataPointers;
 	void writeRecordVersion();
 	void writeClass(const char * name);
 	void startField(const char *name);
-	void endField(const char *name, OType type);
+	void endField(const char *name);
 	void writeTypeIfNeeded(OType type);
 	void popType();
 	unsigned char * writtenContent(int *size, DocumentWriter * parent, int contentOffset);
 };
 
-DocumentWriter::DocumentWriter() :
-		writeValueType(false), isEmbeddedMap(false) {
-
+DocumentWriter::DocumentWriter() {
 }
 
 class InternalWriter {
@@ -52,9 +48,7 @@ void DocumentWriter::writeTypeIfNeeded(OType type) {
 	if (current.front() == EMBEDDED || current.front() == EMBEDDEDMAP) {
 		header.prepare(1);
 		header.content[header.cursor] = type;
-	}
-
-	if (current.front() == EMBEDDEDLIST || current.front() == EMBEDDEDSET) {
+	} else if (current.front() == EMBEDDEDLIST || current.front() == EMBEDDEDSET) {
 		data.prepare(1);
 		data.content[data.cursor] = type;
 	}
@@ -77,7 +71,7 @@ void DocumentWriter::startField(const char *name) {
 
 }
 
-void DocumentWriter::endField(const char *name, OType type) {
+void DocumentWriter::endField(const char *name) {
 }
 
 unsigned char * DocumentWriter::writtenContent(int * size, DocumentWriter * parent, int contentOffset) {
@@ -148,7 +142,6 @@ void RecordWriter::startCollection(int size, OType type) {
 	} else {
 		writeVarint(front->data, size);
 		if (type == EMBEDDEDLIST || type == EMBEDDEDSET) {
-			front->writeValueType = true;
 			front->data.prepare(1);
 			front->data.content[front->data.cursor] = ANY;
 		}
@@ -157,13 +150,7 @@ void RecordWriter::startCollection(int size, OType type) {
 
 void RecordWriter::endCollection(OType type) {
 	DocumentWriter * doc = writer->nested.front();
-	doc->writeValueType = false;
 	doc->current.pop_front();
-}
-
-void RecordWriter::startField(const char *name, OType type) {
-	DocumentWriter *front = writer->nested.front();
-	front->startField(name);
 }
 
 void RecordWriter::startMap(int size, OType type) {
@@ -172,14 +159,13 @@ void RecordWriter::startMap(int size, OType type) {
 	writeVarint(front->data, size);
 	if (type == EMBEDDEDMAP) {
 		writer->nested.push_front(new DocumentWriter());
-		writer->nested.front()->isEmbeddedMap = true;
 	}
 	writer->nested.front()->current.push_front(type);
 }
 
 void RecordWriter::mapKey(const char * mapKey) {
 	DocumentWriter *front = writer->nested.front();
-	if (front->isEmbeddedMap) {
+	if (front->current.front() == EMBEDDEDMAP) {
 		front->header.prepare(1);
 		front->header.content[front->header.cursor] = STRING;
 		front->startField(mapKey);
@@ -279,15 +265,19 @@ void RecordWriter::linkValue(struct Link &link) {
 	}
 }
 
-void RecordWriter::endField(const char *name, OType type) {
+void RecordWriter::startField(const char* name) {
+	DocumentWriter* front = writer->nested.front();
+	front->startField(name);
+}
+
+void RecordWriter::endField(const char *name) {
 	DocumentWriter *front = writer->nested.front();
-	front->endField(name, type);
+	front->endField(name);
 }
 
 void RecordWriter::endMap(OType type) {
 	DocumentWriter *front = writer->nested.front();
-	front->popType();
-	if (front->isEmbeddedMap && front->current.empty()) {
+	if (front->current.front() == EMBEDDEDMAP) {
 		writer->nested.pop_front();
 		DocumentWriter *front1 = writer->nested.front();
 		int size;
@@ -296,7 +286,8 @@ void RecordWriter::endMap(OType type) {
 		front1->data.prepare(size);
 		memcpy(front1->data.content + front1->data.cursor, content, size);
 		delete[] content;
-	}
+	} else
+		front->popType();
 }
 
 void RecordWriter::endDocument() {

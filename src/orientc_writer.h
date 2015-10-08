@@ -21,8 +21,8 @@ public:
 	void startCollection(int size,OType type);
 	void startMap(int size,OType type);
 	void mapKey(const char * mapKey);
-	void startField(const char * name,OType type);
-	void endField(const char * name,OType type);
+	void startField(const char* name);
+	void endField(const char * name);
 	void stringValue(const char * value);
 	void intValue(long value);
 	void longValue(long long value);
@@ -43,6 +43,7 @@ public:
 private:
 	InternalWriter *writer;
 };
+
 
 }
 #endif /* SRC_ORIENTC_WRITER_H_ */

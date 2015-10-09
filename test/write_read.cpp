@@ -486,6 +486,33 @@ void test_link_bag_tree_read_write() {
 	}
 }
 
+void test_null_read_write() {
+	try {
+		RecordWriter writer("ORecordSerializerBinary");
+		writer.startDocument("Test");
+		writer.startField("nullField");
+		writer.nullValue();
+		writer.endField("nullField");
+		writer.endDocument();
+		int size;
+
+		const unsigned char * content = writer.writtenContent(&size);
+		RecordParser reader("ORecordSerializerBinary");
+
+		TrackerListener listener;
+		reader.parse(content, size, listener);
+		delete[] content;
+
+		assert(listener.nullRead );
+
+	} catch (parse_exception & oh) {
+		std::cout << "oh" << oh.what();
+		std::cout.flush();
+		assert(false);
+	}
+}
+
+
 int main() {
 	test_simple_write_read();
 	test_all_simple_write_read();
@@ -497,5 +524,6 @@ int main() {
 	test_embedded_deep_read_write();
 	test_embedded_deep_collections_read_write();
 	test_link_bag_tree_read_write();
+	test_null_read_write();
 	return 0;
 }

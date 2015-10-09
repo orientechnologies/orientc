@@ -50,6 +50,7 @@ public:
 	virtual void endMap(OType type) {}
 	virtual void endCollection(OType type) {}
 	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset){}
+	virtual void nullValue(){}
 
 	int collectionSize;
 	int count;

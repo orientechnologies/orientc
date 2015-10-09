@@ -85,6 +85,9 @@ public:
 		this->pageIndex= pageIndex;
 		this->pageOffset = pageOffset;
 	}
+	virtual void nullValue(){
+		nullRead =true;
+	}
 
 	int field_count;
 	int balanced_count;
@@ -109,8 +112,9 @@ public:
 	long long fileId;
 	long long pageIndex;
 	long pageOffset;
+	bool nullRead;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0),nullRead(false) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);
@@ -215,6 +219,9 @@ public:
 	virtual void ridBagTreeKey(long long fileId,long long pageIndex,long pageOffset) {
 		ridbagKey= true;
 	}
+	virtual void nullValue(){
+		nullRead = true;
+	}
 
 	int field_count;
 	int balanced_count;
@@ -246,8 +253,9 @@ public:
 	std::map<std::string,std::string> embeddedMap;
 	std::string key;
 	bool ridbagKey;
+	bool nullRead;
 	SimpleTrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) ,ridbagKey(false) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) ,ridbagKey(false),nullRead(false) {
 	}
 	~SimpleTrackerListener() {
 		free((void *)class_name);

@@ -49,13 +49,18 @@ void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 			char * field_name = (char *) reader.content + reader.cursor;
 			int32_t position = readFlat32Integer(reader);
 			reader.prepare(1);
-			OType type = (OType) reader.content[reader.cursor];
-			listener.startField(field_name, size, type);
-			int temp = reader.prepared;
-			reader.force_cursor(position);
-			readSimpleValue(reader, type, listener);
-			lastCursor = reader.prepared;
-			reader.force_cursor(temp);
+			if (position == 0) {
+				listener.startField(field_name, size, ANY);
+				listener.nullValue();
+			} else {
+				OType type = (OType) reader.content[reader.cursor];
+				listener.startField(field_name, size, type);
+				int temp = reader.prepared;
+				reader.force_cursor(position);
+				readSimpleValue(reader, type, listener);
+				lastCursor = reader.prepared;
+				reader.force_cursor(temp);
+			}
 			listener.endField(field_name, size);
 		} else {
 			throw new parse_exception("property id not supported by network serialization");

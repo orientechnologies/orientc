@@ -144,6 +144,23 @@ void test_reader_ridbag_tree_nested() {
 	}
 }
 
+void test_reader_null_nested() {
+	try {
+		RecordParser parser("ORecordSerializerBinary");
+		char content[10000];
+		std::fstream document_data("data/with_null.data");
+		document_data.read(content, 10000);
+		SimpleTrackerListener listener;
+		parser.parse((unsigned char *) content, 10000, listener);
+		assert(listener.startDocumentCount == 1);
+		assert(listener.balanced_count == 0);
+		assert(listener.field_count == 3);
+		assert(listener.nullRead);
+	} catch (...) {
+		assert(false);
+	}
+}
+
 void test_fail_wrong_format() {
 	try {
 		RecordParser parser("sdfsdfs");
@@ -161,6 +178,7 @@ int main() {
 	test_reader_nested();
 	test_reader_mix_nested();
 	test_reader_ridbag_tree_nested();
+	test_reader_null_nested();
 	return 0;
 }
 

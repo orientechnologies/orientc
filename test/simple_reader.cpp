@@ -154,8 +154,9 @@ void test_reader_null_nested() {
 		parser.parse((unsigned char *) content, 10000, listener);
 		assert(listener.startDocumentCount == 1);
 		assert(listener.balanced_count == 0);
-		assert(listener.field_count == 3);
-		assert(listener.nullRead);
+		assert(listener.field_count == 8);
+		std::cout<<listener.nullReadCount ;
+		assert(listener.nullReadCount == 7 );
 	} catch (...) {
 		assert(false);
 	}

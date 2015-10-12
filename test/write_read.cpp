@@ -490,9 +490,66 @@ void test_null_read_write() {
 	try {
 		RecordWriter writer("ORecordSerializerBinary");
 		writer.startDocument("Test");
+
+		writer.startField("embeddedList");
+		writer.startCollection(2, EMBEDDEDLIST);
+		writer.nullValue();
+		writer.stringValue("bla");
+		writer.endCollection(EMBEDDEDLIST);
+		writer.endField("embeddedList");
+
+		writer.startField("embeddedSet");
+		writer.startCollection(2, EMBEDDEDSET);
+		writer.nullValue();
+		writer.stringValue("bla");
+		writer.endCollection(EMBEDDEDSET);
+		writer.endField("embeddedSet");
+
+		writer.startField("linklist");
+		writer.startCollection(2, LINKLIST);
+		writer.nullValue();
+		struct Link l;
+		l.cluster = 0;
+		l.position = 1;
+		writer.linkValue(l);
+		writer.endCollection(LINKLIST);
+		writer.endField("linklist");
+
+		writer.startField("linkset");
+		writer.startCollection(2, LINKSET);
+		writer.nullValue();
+		struct Link l1;
+		l1.cluster = 0;
+		l1.position = 1;
+		writer.linkValue(l);
+		writer.endCollection(LINKSET);
+		writer.endField("linkset");
+//
+		writer.startField("embeddedMap");
+		writer.startMap(2, EMBEDDEDMAP);
+		writer.mapKey("key0");
+		writer.nullValue();
+		writer.mapKey("key1");
+		writer.stringValue("value");
+		writer.endMap(EMBEDDEDMAP);
+		writer.endField("embeddedMap");
+
+		writer.startField("linkMap");
+		writer.startMap(2, LINKMAP);
+		writer.mapKey("key2");
+		writer.nullValue();
+		writer.mapKey("key3");
+		struct Link l2;
+		l2.cluster = 0;
+		l2.position = 1;
+		writer.linkValue(l2);
+		writer.endMap(LINKMAP);
+		writer.endField("linkMap");
+//
 		writer.startField("nullField");
 		writer.nullValue();
 		writer.endField("nullField");
+
 		writer.endDocument();
 		int size;
 
@@ -503,7 +560,10 @@ void test_null_read_write() {
 		reader.parse(content, size, listener);
 		delete[] content;
 
-		assert(listener.nullRead );
+		std::cout<<listener.field_count <<std::endl;
+		assert(listener.field_count == 7);
+		std::cout<<listener.nullReadCount <<std::endl;
+		assert(listener.nullReadCount == 7);
 
 	} catch (parse_exception & oh) {
 		std::cout << "oh" << oh.what();
@@ -511,7 +571,6 @@ void test_null_read_write() {
 		assert(false);
 	}
 }
-
 
 int main() {
 	test_simple_write_read();

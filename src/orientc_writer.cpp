@@ -303,10 +303,17 @@ void RecordWriter::endMap(OType type) {
 
 void RecordWriter::nullValue() {
 	DocumentWriter *front = writer->nested.front();
-	front->header.prepare(4);
-	writeFlat32Integer(front->header, 0);
-	front->header.prepare(1);
-	front->header.content[front->header.cursor] = ANY;
+	if (front->current.front() == EMBEDDEDMAP || front->current.front() == EMBEDDED) {
+		writeFlat32Integer(front->header, 0);
+		front->header.prepare(1);
+		front->header.content[front->header.cursor] = ANY;
+	} else if (front->current.front() == LINKLIST || front->current.front() == LINKMAP || front->current.front() == LINKSET) {
+		writeVarint(front->data, -2);
+		writeVarint(front->data, -1);
+	} else if (front->current.front() == EMBEDDEDLIST || front->current.front() == EMBEDDEDSET) {
+		front->data.prepare(1);
+		front->data.content[front->data.cursor] = ANY;
+	}
 }
 
 void RecordWriter::endDocument() {

@@ -182,7 +182,10 @@ void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {
 	Link link;
 	link.cluster = readVarint(reader);
 	link.position = readVarint(reader);
-	listener.linkValue(link);
+	if (link.cluster == -2 && link.position == -1)
+		listener.nullValue();
+	else
+		listener.linkValue(link);
 }
 
 void readValueLinkCollection(ContentBuffer & reader, RecordParseListener & listener, OType type) {
@@ -205,7 +208,7 @@ void readValueEmbeddedCollection(ContentBuffer & reader, RecordParseListener & l
 			reader.prepare(1);
 			OType entryType = (OType) reader.content[reader.cursor];
 			if (ANY == entryType)
-				;	//todo handle null
+				listener.nullValue();
 			else
 				readSimpleValue(reader, entryType, listener);
 		}
@@ -227,12 +230,16 @@ void readValueEmbeddedMap(ContentBuffer & reader, RecordParseListener & listener
 		listener.mapKey(key_name, key_size);
 		long position = readFlat32Integer(reader);
 		reader.prepare(1);
-		OType type = (OType) reader.content[reader.cursor];
-		int temp = reader.prepared;
-		reader.force_cursor(position);
-		readSimpleValue(reader, type, listener);
-		lastCursor = reader.prepared;
-		reader.force_cursor(temp);
+		if (position == 0) {
+			listener.nullValue();
+		} else {
+			OType type = (OType) reader.content[reader.cursor];
+			int temp = reader.prepared;
+			reader.force_cursor(position);
+			readSimpleValue(reader, type, listener);
+			lastCursor = reader.prepared;
+			reader.force_cursor(temp);
+		}
 	}
 	listener.endMap(mapType);
 	if (lastCursor > reader.prepared)

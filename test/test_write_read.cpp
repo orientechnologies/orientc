@@ -12,7 +12,7 @@ using namespace Orient;
 
 void test_simple_write_read() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 
 		writer.startField("test");
@@ -27,7 +27,7 @@ void test_simple_write_read() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -48,7 +48,7 @@ void test_simple_write_read() {
 
 void test_all_simple_write_read() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("test");
 		writer.stringValue("test");
@@ -104,7 +104,7 @@ void test_all_simple_write_read() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -138,7 +138,7 @@ void test_all_simple_write_read() {
 
 void test_embedded_collection_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testCollection");
 		writer.startCollection(12, EMBEDDEDLIST);
@@ -163,7 +163,7 @@ void test_embedded_collection_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -198,7 +198,7 @@ void test_embedded_collection_read_write() {
 
 void test_link_collection_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testCollection");
 		writer.startCollection(10, LINKLIST);
@@ -215,7 +215,7 @@ void test_link_collection_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		LinkListListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -233,7 +233,7 @@ void test_link_collection_read_write() {
 
 void test_embedded_map_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testEmbeddedMap");
 		writer.startMap(12, EMBEDDEDMAP);
@@ -271,7 +271,7 @@ void test_embedded_map_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -289,7 +289,7 @@ void test_embedded_map_read_write() {
 
 void test_link_map_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testLinkMap");
 		writer.startMap(2, LINKMAP);
@@ -311,7 +311,7 @@ void test_link_map_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse((const unsigned char *) content, size, listener);
@@ -330,7 +330,7 @@ void test_link_map_read_write() {
 
 void test_link_bag_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testLinkBag");
 		writer.startCollection(2, LINKBAG);
@@ -350,7 +350,7 @@ void test_link_bag_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse(content, size, listener);
@@ -368,7 +368,7 @@ void test_link_bag_read_write() {
 
 void test_embedded_deep_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("embed");
 		writer.startDocument("");
@@ -393,7 +393,7 @@ void test_embedded_deep_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse(content, size, listener);
@@ -411,7 +411,7 @@ void test_embedded_deep_read_write() {
 
 void test_embedded_deep_collections_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("embed");
 		writer.startDocument("");
@@ -440,7 +440,7 @@ void test_embedded_deep_collections_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse(content, size, listener);
@@ -460,7 +460,7 @@ void test_embedded_deep_collections_read_write() {
 
 void test_link_bag_tree_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 		writer.startField("testLinkBag");
 		writer.ridBagTreeKey(20, 20, 20);
@@ -469,7 +469,7 @@ void test_link_bag_tree_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse(content, size, listener);
@@ -488,7 +488,7 @@ void test_link_bag_tree_read_write() {
 
 void test_null_read_write() {
 	try {
-		RecordWriter writer("ORecordSerializerBinary");
+		RecordWriter writer("onet_ser_v0");
 		writer.startDocument("Test");
 
 		writer.startField("embeddedList");
@@ -554,7 +554,7 @@ void test_null_read_write() {
 		int size;
 
 		const unsigned char * content = writer.writtenContent(&size);
-		RecordParser reader("ORecordSerializerBinary");
+		RecordParser reader("onet_ser_v0");
 
 		TrackerListener listener;
 		reader.parse(content, size, listener);

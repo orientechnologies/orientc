@@ -9,7 +9,7 @@ using namespace Orient;
 
 void test_simple_reader() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[1024];
 		std::fstream document_data("data/document.data");
 		document_data.read(content, 1024);
@@ -30,7 +30,7 @@ void test_simple_reader() {
 
 void test_simple_reader_many() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[2048];
 		std::fstream document_data("data/many_field.data");
 		document_data.read(content, 2048);
@@ -45,7 +45,7 @@ void test_simple_reader_many() {
 
 void test_simple_reader_big() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/basic_long_string.data");
 		document_data.read(content, 10000);
@@ -60,7 +60,7 @@ void test_simple_reader_big() {
 
 void test_simple_reader_all() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/all_fields.data");
 		document_data.read(content, 10000);
@@ -96,7 +96,7 @@ void test_simple_reader_all() {
 
 void test_reader_nested() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/deep_embedded.data");
 		document_data.read(content, 10000);
@@ -111,7 +111,7 @@ void test_reader_nested() {
 
 void test_reader_mix_nested() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/deep_mix_embedded.data");
 		document_data.read(content, 10000);
@@ -130,7 +130,7 @@ void test_reader_mix_nested() {
 
 void test_reader_ridbag_tree_nested() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/ridbag_tree.data");
 		document_data.read(content, 10000);
@@ -147,7 +147,7 @@ void test_reader_ridbag_tree_nested() {
 
 void test_reader_null_nested() {
 	try {
-		RecordParser parser("ORecordSerializerBinary");
+		RecordParser parser("onet_ser_v0");
 		char content[10000];
 		std::fstream document_data("data/with_null.data");
 		document_data.read(content, 10000);

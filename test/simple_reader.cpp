@@ -21,6 +21,7 @@ void test_simple_reader() {
 		assert(std::string(listener.a_string_value) == std::string("test"));
 		assert(listener.integer_value == 2);
 		assert(listener.balanced_count == 0);
+		assert(listener.balanced_document_count == 0);
 	} catch (...) {
 		assert(false);
 	}

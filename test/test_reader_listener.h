@@ -14,9 +14,10 @@ public:
 		if(this->class_name != 0) free(this->class_name);
 		this->class_name = strndup(name,class_name_length);
 		startDocumentCount++;
+		balanced_document_count++;
 	}
 	virtual void endDocument() {
-
+		balanced_document_count--;
 	}
 	virtual void startField(const char * name,size_t name_length, OType type) {
 		this->field_count++;
@@ -91,6 +92,7 @@ public:
 
 	int field_count;
 	int balanced_count;
+	int balanced_document_count;
 	char * class_name;
 	char * a_string_value;
 	long integer_value;
@@ -114,7 +116,7 @@ public:
 	long pageOffset;
 	int nullReadCount;
 	TrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0),nullReadCount(0) {
+	field_count(0),balanced_document_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0),nullReadCount(0) {
 	}
 	~TrackerListener() {
 		free((void *)class_name);

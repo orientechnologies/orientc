@@ -346,19 +346,19 @@ void writeString(ContentBuffer & buffer, const char *string) {
 
 void writeFlat32Integer(ContentBuffer & buffer, int32_t value) {
 	buffer.prepare(4);
-	value = htobe32(value);
+	value = htonl(value);
 	memcpy(buffer.content + buffer.cursor, &value, 4);
 }
 
 void writeFlat16Integer(ContentBuffer & buffer, int16_t value) {
 	buffer.prepare(2);
-	value = htobe16(value);
+	value = htons(value);
 	memcpy(buffer.content + buffer.cursor, &value, 2);
 }
 
 void writeFlat64Integer(ContentBuffer & buffer, int64_t value) {
 	buffer.prepare(8);
-	value = htobe64(value);
+	value = htonll(value);
 	memcpy(buffer.content + buffer.cursor, &value, 8);
 }
 

@@ -297,7 +297,7 @@ int64_t readFlat64Integer(ContentBuffer & reader) {
 	int64_t value;
 	reader.prepare(8);
 	memcpy(&value, reader.content + reader.cursor, 8);
-	value = be64toh(value);
+	value = ntohll(value);
 	return value;
 }
 
@@ -305,7 +305,7 @@ int16_t readFlat16Integer(ContentBuffer & reader) {
 	int16_t value;
 	reader.prepare(2);
 	memcpy(&value, reader.content + reader.cursor, 2);
-	value = be16toh(value);
+	value = ntohs(value);
 	return value;
 }
 
@@ -313,7 +313,7 @@ int32_t readFlat32Integer(ContentBuffer & reader) {
 	int32_t value;
 	reader.prepare(4);
 	memcpy(&value, reader.content + reader.cursor, 4);
-	value = be32toh(value);
+	value = ntohl(value);
 	return value;
 }
 

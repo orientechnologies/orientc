@@ -231,6 +231,35 @@ void test_link_collection_read_write() {
 	}
 }
 
+void test_decimal() {
+	try {
+		RecordWriter writer("onet_ser_v0");
+		writer.startDocument("Test");
+		writer.startField("dec");
+		char val[2]= {0,1};
+		writer.decimalValue(1, val, 2);
+		writer.endDocument();
+		int size;
+		const unsigned char * content = writer.writtenContent(&size);
+		RecordParser reader("onet_ser_v0");
+
+		TrackerListener listener;
+		reader.parse((const unsigned char *) content, size, listener);
+		delete[] content;
+
+		assert(listener.field_count == 1);
+		assert(listener.decimal_size == 2);
+		assert(listener.decimal_value[0] == 0);
+		assert(listener.decimal_value[1] == 1);
+		assert(listener.scale == 1);
+
+	} catch (parse_exception & oh) {
+		std::cout << "oh" << oh.what();
+		std::cout.flush();
+		assert(false);
+	}
+}
+
 void test_embedded_map_read_write() {
 	try {
 		RecordWriter writer("onet_ser_v0");
@@ -584,5 +613,6 @@ int main() {
 	test_embedded_deep_collections_read_write();
 	test_link_bag_tree_read_write();
 	test_null_read_write();
+	test_decimal();
 	return 0;
 }

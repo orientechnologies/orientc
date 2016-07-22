@@ -56,6 +56,12 @@ public:
 		memcpy(binary_value,value,length);
 		binary_size = length;
 	}
+	virtual void decimalValue(int scale, const char * value, int length) {
+		this->scale = scale;
+		decimal_value = (char *)malloc(length);
+		memcpy(decimal_value,value,length);
+		decimal_size = length;
+	}
 	virtual void dateValue(long long value) {
 		date_value =value;
 	}
@@ -115,8 +121,11 @@ public:
 	long long pageIndex;
 	long pageOffset;
 	int nullReadCount;
+	int scale;
+	int decimal_size;
+	char* decimal_value;
 	TrackerListener() :
-	field_count(0),balanced_document_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0),nullReadCount(0) {
+	field_count(0),balanced_document_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0),fileId(0),pageIndex(0),pageOffset(0),nullReadCount(0),scale(0),decimal_size(0),decimal_value(0){
 	}
 	~TrackerListener() {
 		free((void *)class_name);
@@ -204,6 +213,13 @@ public:
 		}
 	}
 
+	virtual void decimalValue(int scale, const char * value, int length) {
+		this->scale = scale;
+		decimal_value = (char *)malloc(length);
+		memcpy(decimal_value,value,length);
+		decimal_size = length;
+	}
+
 	virtual void startCollection(int size,OType type) {
 		collectionSize = size;
 		this->types.push_front(type);
@@ -256,8 +272,11 @@ public:
 	std::string key;
 	bool ridbagKey;
 	int nullReadCount;
+	int scale;
+	int decimal_size;
+	char* decimal_value;
 	SimpleTrackerListener() :
-	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) ,ridbagKey(false),nullReadCount(0) {
+	field_count(0), balanced_count(0), class_name(0), a_string_value(0), integer_value(0),double_value(0),binary_value(0),collectionSize(0),mapSize(0),mapCount(0),startDocumentCount(0) ,ridbagKey(false),nullReadCount(0),scale(0),decimal_size(0),decimal_value(0){
 	}
 	~SimpleTrackerListener() {
 		free((void *)class_name);

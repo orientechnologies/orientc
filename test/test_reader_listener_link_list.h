@@ -37,6 +37,8 @@ public:
 	}
 	virtual void dateTimeValue(long long value) {
 	}
+	virtual void decimalValue(int scale, const char * value, int length) {
+	}
 	virtual void linkValue(struct Link &value) {
 		if(value.position == count)
 			count++;

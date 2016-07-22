@@ -33,6 +33,8 @@ public:
 	}
 	virtual void binaryValue(const char * value, int length) {
 	}
+	virtual void decimalValue(int scale, const char * value, int length) {
+	}
 	virtual void dateValue(long long value) {
 	}
 	virtual void dateTimeValue(long long value) {

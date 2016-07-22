@@ -34,7 +34,7 @@ void RecordParser::parse(const unsigned char * content, int content_size, Record
 
 void readDocument(ContentBuffer &reader, RecordParseListener & listener) {
 	int64_t class_size = readVarint(reader);
-	if (class_size != 0) {
+	if (class_size > 0) {
 		reader.prepare(class_size);
 		char * class_name = (char *) reader.content + reader.cursor;
 		listener.startDocument(class_name, class_size);
@@ -119,7 +119,7 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		int64_t i_val;
 		reader.prepare(8);
 		memcpy(&i_val, reader.content + reader.cursor, 8);
-		i_val = be64toh(i_val);
+		i_val = ntohll(i_val);
 		double db;
 		memcpy(&db, &i_val, 8);
 		listener.doubleValue(db);
@@ -141,8 +141,13 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 		break;
 	case BINARY: {
 		int64_t value_size = readVarint(reader);
-		reader.prepare(value_size);
-		listener.binaryValue((char *) reader.content + reader.cursor, value_size);
+
+		if(value_size!=0){
+			reader.prepare(value_size);
+			listener.binaryValue((char *) reader.content + reader.cursor, value_size);
+		}else {
+			listener.binaryValue("", 0);
+		}
 	}
 		break;
 	case EMBEDDEDLIST:
@@ -174,8 +179,12 @@ void readSimpleValue(ContentBuffer &reader, OType type, RecordParseListener & li
 
 void readValueString(ContentBuffer & reader, RecordParseListener & listener) {
 	int64_t value_size = readVarint(reader);
-	reader.prepare(value_size);
-	listener.stringValue((char *) reader.content + reader.cursor, value_size);
+	if(value_size!=0){
+		reader.prepare(value_size);
+		listener.stringValue((char *) reader.content + reader.cursor, value_size);
+	}else {
+		listener.stringValue("", 0);
+	}
 }
 
 void readValueLink(ContentBuffer & reader, RecordParseListener & listener) {

@@ -240,7 +240,7 @@ void RecordWriter::doubleValue(double value) {
 	front->data.prepare(8);
 	int64_t i_val;
 	memcpy(&i_val, &value, 8);
-	i_val = htobe64(i_val);
+	i_val = htonll(i_val);
 	memcpy(front->data.content + front->data.cursor, &i_val, 8);
 }
 

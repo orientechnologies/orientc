@@ -89,6 +89,9 @@ void test_simple_reader_all() {
 		assert(listener.embeddedSet.size() == 2);
 		assert(listener.embeddedMap.size() == 2);
 		assert(listener.embeddedRidbag.size() == 3);
+		assert(listener.scale == 16);
+		assert(listener.decimal_size == 15);
+
 	} catch (...) {
 		assert(false);
 	}
